@@ -19,7 +19,7 @@ een optimalisatie nodig is. Het doel is om deze te leveren.
 .LP
 Naast het implementeren van de library zullen we de ook de implementatie
 onderwerpen aan metingen op vlak van tijd en geheugengebruik. Tot slot
-verbeteren we de UI/UX van het package.
+verbeteren we de gebruikerservaring van het algoritme.
 .NH 1
 Ontwikkelings Roadmap
 .LP
