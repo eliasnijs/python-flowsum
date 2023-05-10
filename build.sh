@@ -1,4 +1,4 @@
 #!/bin/sh
 
-pre-commit run
 pipreqs . --force
+pre-commit run --all-files

@@ -2,3 +2,4 @@
 .vscode/
 .env*
 *.personal*
+*__pycache__*/
