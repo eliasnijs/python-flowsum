@@ -1,3 +1,6 @@
-dask==2023.5.0
-FlowCytometryTools==0.5.1
-FlowCytometryTools==0.5.1
+fcsparser==0.2.6
+matplotlib==3.7.1
+MiniSom==2.3.1
+numpy==1.21.6
+pandas==1.5.3
+scipy==1.8.0
