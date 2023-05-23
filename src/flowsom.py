@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
 import pandas as pd
+from matplotlib.patches import Circle
 from minisom import MiniSom
 from scipy.cluster.hierarchy import fcluster, linkage
 from scipy.sparse.csgraph import minimum_spanning_tree
@@ -97,18 +98,27 @@ class FlowSOM:
         distance_matrix = squareform(pdist(weights_2d, self.mst_param.distance_metric))
         self.mst = minimum_spanning_tree(distance_matrix)
 
+        dense_mst = self.mst.toarray()
+
         # Hierarchical Consensus Metaclustering
-        consensus_matrix = np.zeros((self.mst.shape[0], self.mst.shape[0]))
+        consensus_matrix = np.zeros((dense_mst.shape[0], dense_mst.shape[0]))
         for _ in range(self.hcc_param.n_bootstrap):
-            subsample = np.random.choice(
-                len(distance_matrix), size=len(distance_matrix), replace=True
+            bootstrap_sample = np.random.choice(
+                np.arange(dense_mst.shape[0]), dense_mst.shape[0], replace=True
             )
-            subsample_distance_matrix = distance_matrix[subsample][:, subsample]
+            subsample_distance_matrix = squareform(
+                pdist(dense_mst[bootstrap_sample, :])
+            )
             Z = linkage(subsample_distance_matrix, method=self.hcc_param.linkage_method)
-            labels = fcluster(Z, self.hcc_param.n_clusters, criterion="maxclust")
-            consensus_matrix += labels[:, None] == labels
+            clustering = fcluster(Z, self.hcc_param.n_clusters, criterion="maxclust")
+
+            for i in range(len(clustering)):
+                for j in range(i + 1, len(clustering)):
+                    if clustering[i] == clustering[j]:
+                        consensus_matrix[bootstrap_sample[i], bootstrap_sample[j]] += 1
 
         consensus_matrix /= self.hcc_param.n_bootstrap
+
         Z = linkage(consensus_matrix, method=self.hcc_param.linkage_method)
         self.hcc = fcluster(Z, self.hcc_param.n_clusters, criterion="maxclust")
 
@@ -285,10 +295,10 @@ class FlowSOM:
         G = nx.from_numpy_array(mst)
         pos = nx.kamada_kawai_layout(G)
 
-        min_x = min(x for x, y in pos.values())
-        max_x = max(x for x, y in pos.values())
-        min_y = min(y for x, y in pos.values())
-        max_y = max(y for x, y in pos.values())
+        min_x = min(x for x, _ in pos.values())
+        max_x = max(x for x, _ in pos.values())
+        min_y = min(y for _, y in pos.values())
+        max_y = max(y for _, y in pos.values())
 
         scale = 0.9
         offset = (1 - scale) / 2
@@ -304,6 +314,7 @@ class FlowSOM:
         fig = plt.figure(figsize=(25, 25))
 
         colors = plt.cm.tab20(np.linspace(0, 1, len(labels)))
+        mcluster_colors = plt.cm.tab20(np.linspace(0, 1, self.hcc_param.n_clusters))
 
         legend_fills = []
         for i_node, (x, y) in pos.items():
@@ -318,6 +329,15 @@ class FlowSOM:
 
         ax_edges = fig.add_subplot(111)
         ax_edges.set_facecolor("#00000000")
+
+        ax_mclustering = fig.add_subplot(111)
+        ax_mclustering.set_facecolor("#00000000")
+        for i_node, (x, y) in pos.items():
+            cluster = self.hcc[i_node]
+            circle = Circle(
+                (x, 1 - y), radius=0.012, color=mcluster_colors[cluster - 1], alpha=0.18
+            )
+            ax_mclustering.add_artist(circle)
 
         for edge in G.edges:
             node1, node2 = edge
