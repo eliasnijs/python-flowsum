@@ -1,6 +1,8 @@
 from math import pi
 
+import matplotlib.gridspec as gridspec
 import matplotlib.pyplot as plt
+import networkx as nx
 import numpy as np
 import pandas as pd
 from minisom import MiniSom
@@ -163,6 +165,56 @@ class FlowSOM:
         self.fit(data, verbose)
         return self.predict(data)
 
+    def _plot_star_chart(self, ax, max_weight, angles, values, colors, legend):
+        """
+        Plot a star (radar/spider) chart on a given matplotlib Axes.
+
+        Parameters:
+        ax (matplotlib.axes.Axes): The Axes object to draw the star chart on.
+        max_weight (float): The maximum value for the radial axis, defining the
+                            outermost circle of the star chart.
+        angles (list of float): The angles in radians at which to place each axis of the
+                                star chart. The last angle should be the same as the
+                                first to close the plot.
+        values (list of float): The values to plot for each axis. The order of the
+                                values should correspond to the order of the angles.
+        colors (list of str): The colors to use for each axis. The order of the colors
+                              should correspond to the order of the angles and values.
+        legend (list): A list to which the filled areas of the plot will be appended for
+                       later use in a legend.
+
+        This function creates a star chart where each axis represents a different
+        category, and the length of the axis represents the value for that category. The
+        axes are arranged in a circular fashion, and consecutive axes are connected to
+        each other, forming a star shape.
+
+        The chart is drawn on the given Axes object, and the filled areas of the plot
+        are added to the given legend list.
+
+        The grid and the border (spine) of the polar plot are semi-transparent to
+        improve readability.
+        """
+        ax.set_rorigin(0)
+        ax.set_ylim(0, max_weight)
+        ax.set_xticks(angles[:-1])
+        ax.set_xticklabels([])
+        ax.set_yticklabels([])
+        ax.grid(alpha=0.25)
+        ax.spines["polar"].set_alpha(0.25)
+        for k in range(len(angles) - 1):
+            ax.plot(
+                [0, angles[k], angles[k + 1], 0],
+                [0, values[k], values[k], 0],
+                color=colors[k],
+            )
+            (fill,) = ax.fill(
+                [angles[k], angles[k + 1], 0],
+                [values[k], values[k], 0],
+                color=colors[k],
+                alpha=0.5,
+            )
+            legend.append(fill)
+
     def plot_som(self):
         """
         Plots the SOM as a grid of star charts.
@@ -191,37 +243,98 @@ class FlowSOM:
             self.som_param.shape[0],
             self.som_param.shape[1],
             subplot_kw=dict(polar=True),
-            figsize=(21, 21),
+            figsize=(self.som_param.shape[0] * 2, self.som_param.shape[1] * 2),
         )
-        fig.suptitle("SOM Node Star Charts", fontsize=18, fontweight="bold")
-        plt.subplots_adjust(wspace=1, hspace=1)
-
+        fig.suptitle("SOM Node Star Charts")
         colors = plt.cm.tab20(np.linspace(0, 1, len(labels)))
-
+        legend_fills = []
         for i in range(self.som_param.shape[0]):
             for j in range(self.som_param.shape[1]):
                 values = np.concatenate((weights[i, j], weights[i, j][:1]))
-                ax[i, j].set_rorigin(0)
-                ax[i, j].set_ylim(0, max_weight)  # Adjusts the radius
-                ax[i, j].set_xticks(angles[:-1])
-                ax[i, j].set_xticklabels(labels[:-1])
-                ax[i, j].fill(angles, values, "b", alpha=0.1)
-                ax[i, j].set_title(f"Node: ({i}, {j})")
-                ax[i, j].set_yticklabels([])
-                for k in range(num_vars):
-                    ax[i, j].plot(
-                        [0, angles[k], angles[k + 1], 0],
-                        [0, values[k], values[k], 0],
-                        color=colors[k],
-                    )
-                    ax[i, j].fill(
-                        [angles[k], angles[k + 1], 0],
-                        [values[k], values[k], 0],
-                        color=colors[k],
-                        alpha=0.5,
-                    )
+                self._plot_star_chart(
+                    ax[i, j], max_weight, angles, values, colors, legend_fills
+                )
+
+        legend = fig.legend(legend_fills, labels[:-1], loc="upper right")
+        for line in legend.get_lines():
+            line.set_linewidth(5)
 
         plt.savefig("data/plot_som.png")
 
-    def plt_mst(self):
-        pass
+    def plot_mst(self):
+        if self.som is None:
+            return None
+        if self.mst is None:
+            return None
+
+        # Get the weights of the SOM
+        weights = self.som.get_weights()
+        weights = weights.reshape(-1, weights.shape[-1])
+        max_weight = np.max(weights)
+
+        # Get the column names from the DataFrame to use as labels
+        labels = self.data.columns.values.tolist()
+
+        # Define the properties for the radar chart
+        num_vars = weights.shape[-1]
+        angles = [n / float(num_vars) * 2 * pi for n in range(num_vars)]
+        angles += angles[:1]
+        labels += labels[:1]
+
+        mst = self.mst.toarray()
+        G = nx.from_numpy_array(mst)
+        pos = nx.kamada_kawai_layout(G)
+
+        min_x = min(x for x, y in pos.values())
+        max_x = max(x for x, y in pos.values())
+        min_y = min(y for x, y in pos.values())
+        max_y = max(y for x, y in pos.values())
+
+        scale = 0.9
+        offset = (1 - scale) / 2
+        pos = {
+            node: (
+                scale * (x - min_x) / (max_x - min_x) + offset,
+                scale * (y - min_y) / (max_y - min_y) + offset,
+            )
+            for node, (x, y) in pos.items()
+        }
+
+        gs = gridspec.GridSpec(1000, 1000)
+        fig = plt.figure(figsize=(25, 25))
+
+        colors = plt.cm.tab20(np.linspace(0, 1, len(labels)))
+
+        legend_fills = []
+        for i_node, (x, y) in pos.items():
+            grid_x = int(x * 1000)
+            grid_y = int(y * 1000)
+            ax = plt.subplot(
+                gs[grid_y - 10 : grid_y + 10, grid_x - 10 : grid_x + 10], polar=True
+            )
+            ax.set_autoscale_on(False)
+            values = np.concatenate((weights[i_node], weights[i_node][:1]))
+            self._plot_star_chart(ax, max_weight, angles, values, colors, legend_fills)
+
+        ax_edges = fig.add_subplot(111)
+        ax_edges.set_facecolor("#00000000")
+
+        for edge in G.edges:
+            node1, node2 = edge
+            x1, y1 = pos[node1]
+            x2, y2 = pos[node2]
+            ax_edges.plot(
+                [x1, x2],
+                [1 - y1, 1 - y2],
+                color="k",
+                linewidth=0.5,
+                transform=plt.gca().transAxes,
+            )
+
+        legend = fig.legend(legend_fills, labels[:-1])
+        for line in legend.get_lines():
+            line.set_linewidth(5)
+
+        ax_edges.set_xticklabels([])
+        ax_edges.set_yticklabels([])
+        plt.savefig("data/plot_som.png")
