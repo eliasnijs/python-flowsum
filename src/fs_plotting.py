@@ -60,12 +60,13 @@ def fs_plot_star_chart(ax, max_weight, angles, values, colors, legend):
         legend.append(fill)
 
 
-def fs_plot_som(fs):
+def fs_plot_som(fs, save=None, show=True, show_clusters=True):
     """
     Plots the flowsom SOM as a grid of star charts.
     Each neuron in the SOM is represented as a star chart, with the weights
     of the neuron serving as dimensions.
     """
+    plt.clf()
 
     # Get the weights of the SOM
     weights = fs.som.get_weights()
@@ -100,25 +101,26 @@ def fs_plot_som(fs):
                 ax[i, j], max_weight, angles, values, colors, legend_fills
             )
 
-    ax_hcc = fig.add_subplot(111)
-    ax_hcc.set_facecolor("#00000000")
-    ax_hcc.axis("off")
-    for i, ax_rows in enumerate(ax):
-        for j, ax_node in enumerate(ax_rows):
-            pos = ax_node.get_position()
-            i_cluster = fs.hcc[i * fs.som_param.shape[0] + j] - 1
-            circle = plt.Rectangle(
-                (pos.x0 - 0.005, pos.y0 - 0.005),
-                pos.width + 0.01,
-                pos.height + 0.01,
-                # (pos.x0 + pos.width / 2.0, pos.y0 + pos.height / 2.0),
-                # min(pos.width, pos.height) / 2.0,
-                edgecolor=(*hcc_colors[i_cluster][:3], 0.4),
-                facecolor=(*hcc_colors[i_cluster][:3], 0.15),
-                zorder=20,
-                transform=fig.transFigure,
-            )
-            ax_hcc.add_artist(circle)
+    if show_clusters:
+        ax_hcc = fig.add_subplot(111)
+        ax_hcc.set_facecolor("#00000000")
+        ax_hcc.axis("off")
+        for i, ax_rows in enumerate(ax):
+            for j, ax_node in enumerate(ax_rows):
+                pos = ax_node.get_position()
+                i_cluster = fs.hcc[i * fs.som_param.shape[0] + j] - 1
+                circle = plt.Rectangle(
+                    (pos.x0 - 0.005, pos.y0 - 0.005),
+                    pos.width + 0.01,
+                    pos.height + 0.01,
+                    # (pos.x0 + pos.width / 2.0, pos.y0 + pos.height / 2.0),
+                    # min(pos.width, pos.height) / 2.0,
+                    edgecolor=(*hcc_colors[i_cluster][:3], 0.4),
+                    facecolor=(*hcc_colors[i_cluster][:3], 0.15),
+                    zorder=20,
+                    transform=fig.transFigure,
+                )
+                ax_hcc.add_artist(circle)
 
     legend = fig.legend(
         legend_fills, labels[:-1], loc="upper right", title="Startcharts Legend"
@@ -126,19 +128,21 @@ def fs_plot_som(fs):
     for line in legend.get_lines():
         line.set_linewidth(5)
 
-    plt.savefig("data/plot_som.png")
+    if show:
+        plt.show()
+    if save is not None:
+        plt.savefig(save)
 
 
-def fs_plot_mst(fs):
-    # Get the weights of the SOM
+def fs_plot_mst(fs, save=None, show=True, show_clusters=True):
+    plt.clf()
+
     weights = fs.som.get_weights()
     weights = weights.reshape(-1, weights.shape[-1])
     max_weight = np.max(weights)
 
-    # Get the column names from the DataFrame to use as labels
     labels = fs.data.columns.values.tolist()
 
-    # Define the properties for the radar chart
     num_vars = weights.shape[-1]
     angles = [n / float(num_vars) * 2 * pi for n in range(num_vars)]
     angles += angles[:1]
@@ -181,23 +185,25 @@ def fs_plot_mst(fs):
         values = np.concatenate((weights[i_node], weights[i_node][:1]))
         fs_plot_star_chart(ax, max_weight, angles, values, colors, legend_fills)
 
-    ax_hcc = fig.add_subplot(111)
-    ax_hcc.set_facecolor("#00000000")
-    ax_hcc.axis("off")
-    # Draw the metaclustering
-    for node, (x, y) in pos.items():
-        i_cluster = fs.hcc[node] - 1
-        circle = plt.Circle(
-            (x, 1 - y),
-            0.02,
-            edgecolor=(*hcc_colors[i_cluster][:3], 0.4),
-            facecolor=(*hcc_colors[i_cluster][:3], 0.15),
-            zorder=20,
-        )
-        ax_hcc.add_artist(circle)
+    if show_clusters:
+        ax_hcc = fig.add_subplot(111)
+        ax_hcc.set_facecolor("#00000000")
+        ax_hcc.axis("off")
+        for node, (x, y) in pos.items():
+            i_cluster = fs.hcc[node] - 1
+            circle = plt.Circle(
+                (x, 1 - y),
+                0.02,
+                edgecolor=(*hcc_colors[i_cluster][:3], 0.4),
+                facecolor=(*hcc_colors[i_cluster][:3], 0.15),
+                zorder=20,
+            )
+            ax_hcc.add_artist(circle)
 
     ax_edges = fig.add_subplot(111)
     ax_edges.set_facecolor("#00000000")
+    ax_edges.set_xticklabels([])
+    ax_edges.set_yticklabels([])
     ax_edges.axis("off")
     for edge in G.edges:
         node1, node2 = edge
@@ -217,6 +223,24 @@ def fs_plot_mst(fs):
     for line in legend.get_lines():
         line.set_linewidth(5)
 
-    ax_edges.set_xticklabels([])
-    ax_edges.set_yticklabels([])
-    plt.savefig("data/plot_mst.png")
+    if show:
+        plt.show()
+    if save is not None:
+        plt.savefig(save)
+
+
+def fs_plot_feature_planes(fs, save=None, show=True):
+    plt.clf()
+    weights = fs.som.get_weights()
+    for i, f in enumerate(list(fs.data.columns)):
+        ax = plt.subplot(4, 4, i + 1)
+        ax.set_xticklabels([])
+        ax.set_yticklabels([])
+        ax.axis("off")
+        plt.title(f)
+        plt.pcolor(weights[:, :, i].T, cmap="plasma")
+    plt.tight_layout()
+    if show:
+        plt.show()
+    if save is not None:
+        plt.savefig(save)

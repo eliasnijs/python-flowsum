@@ -13,7 +13,7 @@ from fs_dataclasses import (
     FlowSOM_MSTParameters,
     FlowSOM_SOMParameters,
 )
-from fs_plotting import fs_plot_mst, fs_plot_som
+from fs_plotting import fs_plot_feature_planes, fs_plot_mst, fs_plot_som
 
 
 class FlowSOM:
@@ -83,6 +83,7 @@ class FlowSOM:
             learning_rate=self.som_param.alpha,
             neighborhood_function=self.som_param.neighbourhood_function,
             activation_distance=self.som_param.activiation_distance,
+            random_seed=0,
         )
         som.train_batch(
             data.values, num_iteration=self.som_param.n_epochs, verbose=verbose
@@ -170,15 +171,7 @@ class FlowSOM:
         self.fit(data, verbose)
         return self.predict(data)
 
-    # TODO(Elias): Implement this
-    def as_df(self, lazy=True):
-        pass
-
-    # TODO(Elias): Implement this
-    def as_adata(self, lazy=True):
-        pass
-
-    def plot_som(self):
+    def plot_som(self, save=None, show=True, show_clusters=True):
         if self.som is None:
             print("[Error]: SOM has not been trained yet")
             return None
@@ -186,9 +179,9 @@ class FlowSOM:
             print("[Error]: Data is not loaded")
             return None
 
-        fs_plot_som(self)
+        fs_plot_som(self, save, show, show_clusters)
 
-    def plot_mst(self):
+    def plot_mst(self, save=None, show=True, show_clusters=True):
         if self.data is None:
             print("[Error]: Data is not loaded")
             return None
@@ -199,4 +192,26 @@ class FlowSOM:
             print("[Error]: MST has not been constructed yet")
             return None
 
-        fs_plot_mst(self)
+        fs_plot_mst(self, save, show, show_clusters)
+
+    def plot_feature_planes(self, save=None, show=True):
+        if self.data is None:
+            print("[Error]: Data is not loaded")
+            return None
+        if self.som is None:
+            print("[Error]: SOM has not been trained yet")
+            return None
+
+        fs_plot_feature_planes(self, save, show)
+
+    # TODO(Elias): Implement this
+    def as_df(self, lazy=True):
+        pass
+
+    # TODO(Elias): Implement this
+    def as_adata(self, lazy=True):
+        pass
+
+    # TODO(Elias): Implement this
+    def report(self):
+        pass
