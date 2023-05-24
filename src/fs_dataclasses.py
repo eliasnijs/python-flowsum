@@ -21,4 +21,3 @@ class FlowSOM_HCCParameters:
     n_clusters: int = 10
     linkage_method: str = "ward"
     n_bootstrap: int = 100
-    sample_ratio: float = 0.8
