@@ -14,6 +14,7 @@ from fs_dataclasses import (
     FlowSOM_SOMParameters,
 )
 from fs_plotting import fs_plot_feature_planes, fs_plot_mst, fs_plot_som
+from fs_reporting import report
 
 
 class FlowSOM:
@@ -347,5 +348,5 @@ class FlowSOM:
         pass
 
     # TODO(Elias): Implement this
-    def report(self):
-        pass
+    def report(self, path, generate_images=True):
+        return report(self, path, generate_images)
