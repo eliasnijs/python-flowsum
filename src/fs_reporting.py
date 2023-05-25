@@ -3,7 +3,47 @@ import os
 import numpy as np
 
 
-def report(model, save="report/", generate_images=True):
+def fs_report(model, save="report/", generate_images=True):
+    """
+    Generates a detailed report for a trained FlowSOM model.
+
+    This function produces a report in markdown syntax that provides an overview of the
+    FlowSOM analysis results, including key statistics, model parameters, and various
+    visualizations. The report is written to a user-specified directory. If
+    'generate_images' is True, the function generates new images in the 'images'
+    subdirectory under the directory specified in 'save'. If False, it assumes the
+    images are already present in the subdirectory.
+
+    Parameters
+    ----------
+    model : object
+        The trained FlowSOM model for which the report is to be generated.
+
+    save : str, optional
+        The directory to which the report will be saved. Defaults to "report/".
+
+    generate_images : bool, optional
+        If set to True, the function will generate new images in the 'images'
+        subdirectory under the directory specified in 'save'. If False, it will use the
+        images already present in this subdirectory. Defaults to True.
+
+    Returns
+    -------
+    None
+
+    Usage
+    -----
+    >>> fs_report(model, save="report/", generate_images=True)
+
+    Notes
+    -----
+    This function is instrumental in understanding the results of a FlowSOM analysis.
+    The generated report includes key statistics at both metacluster and individual
+    neuron levels, as well as a comprehensive summary of the model parameters. In
+    addition, it provides various visualizations, which can give insights into the
+    structure and organization of the input data.
+    """
+
     # Setup folder structure
     print(">>> generating report/ folder")
     os.makedirs(save, exist_ok=True)
@@ -29,7 +69,7 @@ def report(model, save="report/", generate_images=True):
         model.plot_mst(save=image_folder + "mst_wclusters.png", show=False)
 
     report_string = f"""
-# FlowSOM Analysis Report
+# :microscope: FlowSOM Analysis Report
 This report summarizes the results of a FlowSOM analysis.
 
 Parameter | Value
@@ -39,7 +79,7 @@ Total Number of Metaclusters | `{model.hcc_param.n_clusters}`
 Total Number of Clusters | `{model.som_param.shape[0]*model.som_param.shape[1]}`
 Markers Used | `{list(model.data.columns)}`
 
-## Model Parameters
+## :gear: Model Parameters
 
 The following parameters were used to train the FlowSOM model:
 
@@ -49,8 +89,8 @@ Parameter | Value
 --- | ---
 Number of Epochs | `{model.som_param.n_epochs}`
 Shape of SOM Grid | `{model.som_param.shape}`
-Sigma | `{model.som_param.sigma}`
-Learning Rate (Alpha) | `{model.som_param.alpha}`
+Neighbourhood ($\\sigma$) | `{model.som_param.sigma}`
+Learning Rate ($\\alpha$) | `{model.som_param.alpha}`
 Neighbourhood Function | `{model.som_param.neighbourhood_function}`
 Activation Distance | `{model.som_param.activiation_distance}`
 
@@ -67,14 +107,14 @@ Parameter | Value
 Number of Clusters | `{model.hcc_param.n_clusters}`
 Linkage Method | `{model.hcc_param.linkage_method}`
 
-## Analysis Results
+## :bar_chart: Analysis Results
 
 ### Visualisations
 The following images visualize different aspects of the FlowSOM analysis.
 
 #### Overview
 
-| | metaclusters ❌ | metaclusters ✔️ |
+| | metaclusters :x: | metaclusters :white_check_mark: |
 -|-|-
 Grid | ![SOM no clusters ](images/som_noclusters.png) | ![SOM](images/som_wclusters.png)
 MST | ![MST no clusters](images/mst_noclusters.png) | ![MST](images/mst_wclusters.png)

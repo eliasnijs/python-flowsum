@@ -14,7 +14,7 @@ from fs_dataclasses import (
     FlowSOM_SOMParameters,
 )
 from fs_plotting import fs_plot_feature_planes, fs_plot_mst, fs_plot_som
-from fs_reporting import report
+from fs_reporting import fs_report
 
 
 class FlowSOM:
@@ -262,6 +262,9 @@ class FlowSOM:
         if self.data is None:
             print("[Error]: Data is not loaded")
             return None
+        if self.hcc is None:
+            print("[Error]: HCC has not been trained yet")
+            return None
 
         fs_plot_som(self, save, show, show_clusters)
 
@@ -301,6 +304,9 @@ class FlowSOM:
             return None
         if self.mst is None:
             print("[Error]: MST has not been constructed yet")
+            return None
+        if self.hcc is None:
+            print("[Error]: HCC has not been trained yet")
             return None
 
         fs_plot_mst(self, save, show, show_clusters)
@@ -349,4 +355,55 @@ class FlowSOM:
 
     # TODO(Elias): Implement this
     def report(self, path, generate_images=True):
-        return report(self, path, generate_images)
+        """
+        Generates a detailed report for a trained FlowSOM model.
+
+        This function produces a report in markdown syntax that provides an overview of
+        the FlowSOM analysis results, including key statistics, model parameters, and
+        various visualizations. The report is written to a user-specified directory. If
+        'generate_images' is True, the function generates new images in the 'images'
+        subdirectory under the directory specified in 'save'. If False, it assumes the
+        images are already present in the subdirectory.
+
+        Parameters
+        ----------
+        model : object
+            The trained FlowSOM model for which the report is to be generated.
+
+        save : str, optional
+            The directory to which the report will be saved. Defaults to "report/".
+
+        generate_images : bool, optional
+            If set to True, the function will generate new images in the 'images'
+            subdirectory under the directory specified in 'save'. If False, it will use
+            the images already present in this subdirectory. Defaults to True.
+
+        Returns
+        -------
+        None
+
+        Usage
+        -----
+        >>> fs_report(model, save="report/", generate_images=True)
+
+        Notes
+        -----
+        This function is instrumental in understanding the results of a FlowSOM
+        analysis. The generated report includes key statistics at both metacluster and
+        individual neuron levels, as well as a comprehensive summary of the model
+        parameters. In addition, it provides various visualizations, which can give
+        insights into the structure and organization of the input data.
+        """
+        if self.data is None:
+            print("[Error]: Data is not loaded")
+            return None
+        if self.som is None:
+            print("[Error]: SOM has not been trained yet")
+            return None
+        if self.mst is None:
+            print("[Error]: MST has not been constructed yet")
+            return None
+        if self.hcc is None:
+            print("[Error]: HCC has not been trained yet")
+            return None
+        return fs_report(self, path, generate_images)
