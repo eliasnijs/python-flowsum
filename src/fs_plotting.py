@@ -8,32 +8,42 @@ import numpy as np
 
 def fs_plot_star_chart(ax, max_weight, angles, values, colors, legend):
     """
-    Plot a star (radar/spider) chart on a given matplotlib Axes.
+    Generates a star (also known as radar or spider) chart on the given matplotlib Axes.
 
-    Parameters:
-    ax (matplotlib.axes.Axes): The Axes object to draw the star chart on.
-    max_weight (float): The maximum value for the radial axis, defining the
-                        outermost circle of the star chart.
-    angles (list of float): The angles in radians at which to place each axis of the
-                            star chart. The last angle should be the same as the
-                            first to close the plot.
-    values (list of float): The values to plot for each axis. The order of the
-                            values should correspond to the order of the angles.
-    colors (list of str): The colors to use for each axis. The order of the colors
-                          should correspond to the order of the angles and values.
-    legend (list): A list to which the filled areas of the plot will be appended for
-                   later use in a legend.
+    Each axis of the star chart represents a different category, with the length of the
+    axis proportional to the value of that category. Axes are arranged circularly, with
+    consecutive axes interconnected, forming a star-like shape.
 
-    This function creates a star chart where each axis represents a different
-    category, and the length of the axis represents the value for that category. The
-    axes are arranged in a circular fashion, and consecutive axes are connected to
-    each other, forming a star shape.
+    Parameters
+    ----------
+    ax : matplotlib.axes.Axes
+        The Axes object where the star chart will be drawn.
+    max_weight : float
+        The maximum value for the radial axis, which defines the outermost circle of the
+        star chart.
+    angles : list of float
+        The angles (in radians) to position each axis of the star chart. The last angle
+        should match the first to close the plot.
+    values : list of float
+        The values to be plotted for each axis. The order should correspond to the order
+        of the angles.
+    colors : list of str
+        The colors to apply for each axis. The order should correspond to the order of
+        the angles and values.
+    legend : list
+        A list to which the filled areas of the plot will be appended for creating a
+        legend.
 
-    The chart is drawn on the given Axes object, and the filled areas of the plot
-    are added to the given legend list.
+    Usage
+    -----
+    >>> plot_star_chart(ax, max_weight, angles, values, colors, legend)
 
-    The grid and the border (spine) of the polar plot are semi-transparent to
-    improve readability.
+    Notes
+    -----
+    The plot_star_chart function offers a visually engaging method for representing
+    multivariate data. It creates a star chart on a given Axes object, with filled areas
+    added to a provided legend list. For better readability, the grid and the border
+    (spine) of the polar plot are semi-transparent.
     """
     ax.set_rorigin(0)
     ax.set_ylim(0, max_weight)
@@ -62,9 +72,34 @@ def fs_plot_star_chart(ax, max_weight, angles, values, colors, legend):
 
 def fs_plot_som(fs, save=None, show=True, show_clusters=True):
     """
-    Plots the flowsom SOM as a grid of star charts.
-    Each neuron in the SOM is represented as a star chart, with the weights
-    of the neuron serving as dimensions.
+    Generates a grid of star charts representing the FlowSOM Self-Organizing Map (SOM).
+    Each neuron in the SOM is visualized as a star chart, with the neuron's weights
+    acting as dimensions.
+
+    Parameters
+    ----------
+    fs : FlowSOM
+        The FlowSOM instance to visualize.
+    save : str, optional
+        Path where the generated plot will be saved. If None, the plot will not be
+        saved. Default is None.
+    show : bool, optional
+        If True, the plot will be displayed. Default is True.
+    show_clusters : bool, optional
+        If True, different clusters in the SOM will be marked with different colors.
+        Default is True.
+
+    Usage
+    -----
+    >>> fs_plot_som(fs, save="path/to/save", show=True, show_clusters=True)
+
+    Notes
+    -----
+    The fs_plot_som function presents the trained FlowSOM Self-Organizing Map in a
+    visually engaging manner. Each neuron's weights are depicted as star charts in a
+    grid format, allowing for easy comparison and identification of patterns. If
+    enabled, the function can also highlight different clusters within the SOM with
+    distinct colors.
     """
     plt.clf()
 
@@ -135,6 +170,35 @@ def fs_plot_som(fs, save=None, show=True, show_clusters=True):
 
 
 def fs_plot_mst(fs, save=None, show=True, show_clusters=True):
+    """
+    Generates a Minimum Spanning Tree (MST) plot for the FlowSOM model, where each node
+    in the grid is visualized as a star chart.
+
+    Parameters
+    ----------
+    fs : FlowSOM
+        The FlowSOM instance to visualize.
+    save : str, optional
+        Path where the generated plot will be saved. If None, the plot will not be
+        saved. Default is None.
+    show : bool, optional
+        If True, the plot will be displayed. Default is True.
+    show_clusters : bool, optional
+        If True, different clusters in the MST will be marked with different colors.
+        Default is True.
+
+    Usage
+    -----
+    >>> fs_plot_mst(fs, save="path/to/save", show=True, show_clusters=True)
+
+    Notes
+    -----
+    The fs_plot_mst function provides a visual representation of the
+    Minimum Spanning Tree (MST) created by the FlowSOM model. Each node in the MST,
+    corresponding to a neuron in the SOM grid, is visualized as a star chart. The
+    function allows easy visualization and analysis of the relationships between
+    different neurons (and therefore data clusters) in the trained model.
+    """
     plt.clf()
 
     weights = fs.som.get_weights()
@@ -230,6 +294,32 @@ def fs_plot_mst(fs, save=None, show=True, show_clusters=True):
 
 
 def fs_plot_feature_planes(fs, save=None, show=True):
+    """
+    Generates a plot showcasing the feature planes of the Self-Organizing Map (SOM) in
+    the FlowSOM model.
+
+    Parameters
+    ----------
+    fs : FlowSOM
+        The FlowSOM instance whose feature planes are to be visualized.
+    save : str, optional
+        Path where the generated plot will be saved. If None, the plot will not be
+        saved. Default is None.
+    show : bool, optional
+        If True, the plot will be displayed. Default is True.
+
+    Usage
+    -----
+    >>> fs_plot_feature_planes(fs, save="path/to/save", show=True)
+
+    Notes
+    -----
+    The fs_plot_feature_planes function visualizes the feature planes of the trained SOM
+    in the FlowSOM model. Each subplot corresponds to a particular feature from the
+    data, represented as a heatmap on the SOM grid. This plot provides an insightful
+    visualization of how different features contribute to the formation of clusters in
+    the SOM.
+    """
     plt.clf()
     weights = fs.som.get_weights()
     for i, f in enumerate(list(fs.data.columns)):
