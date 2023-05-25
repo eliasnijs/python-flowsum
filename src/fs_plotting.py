@@ -321,9 +321,12 @@ def fs_plot_feature_planes(fs, save=None, show=True):
     the SOM.
     """
     plt.clf()
+    plt.figure(figsize=(12, 12))
     weights = fs.som.get_weights()
+    grid_size = int(np.ceil(np.sqrt(len(list(fs.data.columns)))))
     for i, f in enumerate(list(fs.data.columns)):
-        ax = plt.subplot(4, 4, i + 1)
+        ax = plt.subplot(grid_size, grid_size, i + 1)
+        ax.set_aspect("equal")
         ax.set_xticklabels([])
         ax.set_yticklabels([])
         ax.axis("off")
