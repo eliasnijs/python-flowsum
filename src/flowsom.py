@@ -18,28 +18,42 @@ from fs_plotting import fs_plot_feature_planes, fs_plot_mst, fs_plot_som
 
 class FlowSOM:
     """
-    Implementation of the FlowSOM algorithm, a method used in the analysis of
-    flow and mass cytometry data. It utilizes a Self-Organizing Map (SOM),
-    followed by construction of a Minimum Spanning Tree (MST) and
-    Metaclustering to provide a visualization of the data clusters and their
-    relations.
+    FlowSOM is a class representing the FlowSOM algorithm. This algorithm is widely used
+    in flow and mass cytometry data analysis.
+
+    The FlowSOM model includes a Self-Organizing Map (SOM), construction of a
+    Minimum Spanning Tree (MST), and Metaclustering. These components work in tandem to
+    generate visualizations of data clusters and their relationships.
 
     Attributes
     ----------
     som_param: FlowSOM_SOMParameters
-        The parameters used for training the Self Organizing Map.
+        Parameters dictating the behavior and construction of the Self-Organizing Map.
     mst_param: FlowSOM_MSTParameters
-        The parameters used for building the Minimum Spanning Tree.
+        Parameters governing the construction of the Minimum Spanning Tree.
     hcc_param: FlowSOM_HCCParameters
-        The parameters used for the Hierarchical Consensus Metaclustering.
+        Parameters specifying the nature and construction of the Hierarchical Consensus
+        Metaclustering.
     data: pd.DataFrame
-        The data that was used to fit the model.
+        The dataset used to fit the model.
     som: MiniSom
-        The trained Self Organizing Map.
+        The trained Self-Organizing Map after fitting to the data.
     mst: scipy.sparse.coo.coo_matrix
-        The built Minimum Spanning Tree.
+        The resulting Minimum Spanning Tree after construction.
     hcc: np.ndarray
-        The generated Metaclusters.
+        The resulting Metaclusters post-generation.
+
+    Usage
+    -----
+    >>> fs = FlowSOM(data, som_param, mst_param, hcc_param)
+    >>> fs.fit(data)
+
+    Notes
+    -----
+    The FlowSOM class provides a comprehensive implementation of the FlowSOM algorithm,
+    providing users with a powerful tool for cytometry data analysis. All components of
+    the algorithm (SOM, MST, and Metaclustering) have tunable parameters for flexibility
+    and fine-tuning.
     """
 
     def __init__(
@@ -58,19 +72,31 @@ class FlowSOM:
 
     def fit(self, data: pd.DataFrame, verbose=False):
         """
-        Fit the FlowSOM model on the provided data.
+        Trains the FlowSOM model on the provided dataset.
 
         Parameters
         ----------
         data : pd.DataFrame
-            Input data to be clustered.
+            The input data to be clustered.
         verbose : bool, optional
-            If true, print progress updates. Default is False.
+            If set to True, progress updates will be displayed during training. Defaults
+            to False.
 
         Returns
         -------
         self : object
-            Returns self.
+            The trained model instance.
+
+        Usage
+        -----
+        >>> model = FlowSOM().fit(data, verbose=True)
+
+        Notes
+        -----
+        This function is instrumental in training the FlowSOM model on a provided
+        dataset. Training involves adjusting the model parameters to best fit the data.
+        The verbose parameter can be used to monitor the progress of training. Upon
+        completion, the function returns the trained model instance.
         """
         self.data = data
 
@@ -114,17 +140,28 @@ class FlowSOM:
 
     def predict(self, data: pd.DataFrame) -> Optional[pd.Series]:
         """
-        Apply the trained FlowSOM model to predict the clusters for new data.
+        Utilizes the trained FlowSOM model to designate cluster assignments for new,
+        unseen data.
 
         Parameters
         ----------
         data : pd.DataFrame
-            New input data to be clustered.
+            The fresh input dataset that requires clustering.
 
         Returns
         -------
         predictions : pd.DataFrame
-            DataFrame of original data and their predicted clusters.
+            A DataFrame combining the original data and their corresponding predicted
+            cluster assignments.
+
+        Usage
+        -----
+        >>> predictions = model.predict(new_data)
+
+        Notes
+        -----
+        This function is particularly useful when you have a pre-trained FlowSOM model
+        and wish to apply it to new data for clustering.
         """
         if self.som is None:
             print(
@@ -157,21 +194,67 @@ class FlowSOM:
 
     def fit_predict(self, data: pd.DataFrame, verbose=False):
         """
-        Fits the model to the given data and then returns the predicted cluster
-        assignments.
+        Fit the model to the given data and return predicted cluster assignments.
 
-        Args:
-            data (pd.DataFrame): Data to fit the model to.
-            verbose (bool, optional): If True, print progress messages.
-            Defaults to False.
+        This function trains the FlowSOM model on the provided data and returns the
+        predicted cluster assignments for each data point. If verbose is True, it will
+        print progress updates during training.
 
-        Returns:
-            np.ndarray: Predicted cluster assignments.
+        Parameters
+        ----------
+        data : pd.DataFrame
+            Input data to fit the model to.
+
+        verbose : bool, optional
+            If True, print progress updates. Default is False.
+
+        Returns
+        -------
+        np.ndarray
+            The predicted cluster assignments for each data point.
+
+        Usage
+        -----
+        >>> predicted_clusters = fit_predict(data, verbose=True)
+
+        Notes
+        -----
+        This function combines the steps of fitting the model to the data and predicting
+        cluster assignments in one step. It is especially useful in cases where the
+        model fit and predictions are desired in one go.
         """
         self.fit(data, verbose)
         return self.predict(data)
 
     def plot_som(self, save=None, show=True, show_clusters=True):
+        """
+        Generates a grid of star charts representing the FlowSOM
+        Self-Organizing Map (SOM). Each neuron in the SOM is visualized as a star chart,
+        with the neuron's weights acting as dimensions.
+
+        Parameters
+        ----------
+        save : str, optional
+            Path where the generated plot will be saved. If None, the plot will not be
+            saved. Default is None.
+        show : bool, optional
+            If True, the plot will be displayed. Default is True.
+        show_clusters : bool, optional
+            If True, different clusters in the SOM will be marked with different colors.
+            Default is True.
+
+        Usage
+        -----
+        >>> fs_plot_som(fs, save="path/to/save", show=True, show_clusters=True)
+
+        Notes
+        -----
+        The fs_plot_som function presents the trained FlowSOM Self-Organizing Map in a
+        visually engaging manner. Each neuron's weights are depicted as star charts in a
+        grid format, allowing for easy comparison and identification of patterns. If
+        enabled, the function can also highlight different clusters within the SOM with
+        distinct colors.
+        """
         if self.som is None:
             print("[Error]: SOM has not been trained yet")
             return None
@@ -182,6 +265,33 @@ class FlowSOM:
         fs_plot_som(self, save, show, show_clusters)
 
     def plot_mst(self, save=None, show=True, show_clusters=True):
+        """
+        Generates a Minimum Spanning Tree (MST) plot for the FlowSOM model, where each
+        node in the grid is visualized as a star chart.
+
+        Parameters
+        ----------
+        save : str, optional
+            Path where the generated plot will be saved. If None, the plot will not be
+            saved. Default is None.
+        show : bool, optional
+            If True, the plot will be displayed. Default is True.
+        show_clusters : bool, optional
+            If True, different clusters in the MST will be marked with different colors.
+            Default is True.
+
+        Usage
+        -----
+        >>> fs_plot_mst(fs, save="path/to/save", show=True, show_clusters=True)
+
+        Notes
+        -----
+        The fs_plot_mst function provides a visual representation of the
+        Minimum Spanning Tree (MST) created by the FlowSOM model. Each node in the MST,
+        corresponding to a neuron in the SOM grid, is visualized as a star chart. The
+        function allows easy visualization and analysis of the relationships between
+        different neurons (and therefore data clusters) in the trained model.
+        """
         if self.data is None:
             print("[Error]: Data is not loaded")
             return None
@@ -195,6 +305,30 @@ class FlowSOM:
         fs_plot_mst(self, save, show, show_clusters)
 
     def plot_feature_planes(self, save=None, show=True):
+        """
+        Generates a plot showcasing the feature planes of the Self-Organizing Map (SOM)
+        in the FlowSOM model.
+
+        Parameters
+        ----------
+        save : str, optional
+            Path where the generated plot will be saved. If None, the plot will not be
+            saved. Default is None.
+        show : bool, optional
+            If True, the plot will be displayed. Default is True.
+
+        Usage
+        -----
+        >>> fs_plot_feature_planes(fs, save="path/to/save", show=True)
+
+        Notes
+        -----
+        The fs_plot_feature_planes function visualizes the feature planes of the
+        trained SOM in the FlowSOM model. Each subplot corresponds to a particular
+        feature from the data, represented as a heatmap on the SOM grid. This plot
+        provides an insightful visualization of how different features contribute to the
+        formation of clusters in the SOM.
+        """
         if self.data is None:
             print("[Error]: Data is not loaded")
             return None
