@@ -1,5 +1,7 @@
 from typing import Optional
 
+import anndata
+import dask.dataframe as dd
 import numpy as np
 import pandas as pd
 from minisom import MiniSom
@@ -345,15 +347,6 @@ class FlowSOM:
 
         fs_plot_feature_planes(self, save, show)
 
-    # TODO(Elias): Implement this
-    def as_df(self, lazy=True):
-        pass
-
-    # TODO(Elias): Implement this
-    def as_adata(self, lazy=True):
-        pass
-
-    # TODO(Elias): Implement this
     def report(self, path, generate_images=True):
         """
         Generates a detailed report for a trained FlowSOM model.
@@ -407,3 +400,81 @@ class FlowSOM:
             print("[Error]: HCC has not been trained yet")
             return None
         return fs_report(self, path, generate_images)
+
+    def as_df(self, lazy=True, n_partitions=10):
+        """
+        Converts the input data to a DataFrame.
+
+        Parameters
+        ----------
+        lazy : bool, optional
+            If set to True, a Dask DataFrame will be returned, which allows for
+            lazy evaluation. If False, a pandas DataFrame will be returned. Defaults
+            to True.
+
+        Returns
+        -------
+        df : dask.DataFrame or pandas.DataFrame
+            The input data as a DataFrame.
+
+        Usage
+        -----
+        >>> model = FlowSOM().fit(data)
+        >>> df = model.as_df(lazy=True)
+        """
+        if self.data is None:
+            print("[Error]: Data is not loaded")
+            return None
+        if lazy:
+            return dd.from_pandas(self.data, npartitions=n_partitions)
+        else:
+            return self.data.copy()
+
+    def as_adata(self, lazy=True, n_partitions=10):
+        """
+        Converts the input data to an AnnData object.
+
+        Parameters
+        ----------
+        lazy : bool, optional
+            If set to True, the AnnData object's X attribute, which stores the
+            data matrix, will be a Dask array, which allows for lazy evaluation.
+            If False, it will be a standard numpy array. Defaults to True.
+
+        n_partitions : int, optional
+            Number of partitions for the Dask DataFrame. Only used when `lazy` is True.
+            Defaults to 10.
+
+        Returns
+        -------
+        adata : anndata.AnnData
+            The input data as an AnnData object.
+
+        Usage
+        -----
+        >>> model = FlowSOM().fit(data)
+        >>> adata = model.as_adata(lazy=True)
+        """
+
+        if self.data is None:
+            print("[Error]: Data is not loaded")
+            return None
+        if self.hcc is None:
+            print("[Error]: HCC has not been trained yet")
+            return None
+
+        if lazy:
+            X = dd.from_pandas(self.data, npartitions=n_partitions).to_dask_array(
+                lengths=True
+            )
+        else:
+            X = self.data.values
+
+        adata = anndata.AnnData(
+            X=X,
+            var=pd.DataFrame(index=self.data.columns),
+        )
+
+        adata.uns["FlowSOM"] = {"metaclusters": self.hcc}
+
+        return adata
