@@ -10,13 +10,13 @@ from scipy.sparse.csgraph import minimum_spanning_tree
 from scipy.spatial.distance import pdist, squareform
 from sklearn.cluster import AgglomerativeClustering
 
-from fs_dataclasses import (
+from .fs_dataclasses import (
     FlowSOM_HCCParameters,
     FlowSOM_MSTParameters,
     FlowSOM_SOMParameters,
 )
-from fs_plotting import fs_plot_feature_planes, fs_plot_mst, fs_plot_som
-from fs_reporting import fs_report
+from .fs_plotting import fs_plot_feature_planes, fs_plot_mst, fs_plot_som
+from .fs_reporting import fs_report
 
 
 class FlowSOM:
