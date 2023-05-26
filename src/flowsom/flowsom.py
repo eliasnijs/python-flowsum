@@ -64,6 +64,7 @@ class FlowSOM(BaseEstimator, ClusterMixin):
         som_param: FlowSOM_SOMParameters = FlowSOM_SOMParameters(),
         mst_param: FlowSOM_MSTParameters = FlowSOM_MSTParameters(),
         hcc_param: FlowSOM_HCCParameters = FlowSOM_HCCParameters(),
+        n_clusters=None,
     ):
         self.som_param = som_param
         self.mst_param = mst_param
@@ -72,6 +73,8 @@ class FlowSOM(BaseEstimator, ClusterMixin):
         self.som = None
         self.mst = None
         self.hcc = None
+        if n_clusters is not None:
+            self.hcc_param.n_clusters = n_clusters
 
     def fit(self, data: pd.DataFrame, verbose=False):
         """
