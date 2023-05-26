@@ -191,6 +191,9 @@ class FlowSOM(BaseEstimator, ClusterMixin):
             )
             return None
 
+        if isinstance(data, np.ndarray):
+            data = pd.DataFrame(data)
+
         # Get the winning neuron for each data point in the SOM
         winners = np.array([self.som.winner(x) for x in data.values])
 
