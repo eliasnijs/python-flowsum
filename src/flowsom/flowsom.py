@@ -104,7 +104,9 @@ class FlowSOM(BaseEstimator, ClusterMixin):
         The verbose parameter can be used to monitor the progress of training. Upon
         completion, the function returns the trained model instance.
         """
-        print(data)
+        if isinstance(data, np.ndarray):
+            data = pd.DataFrame(data)
+
         self.data = data
 
         # Train Self Organizing Map
