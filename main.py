@@ -1,8 +1,8 @@
 import numpy as np
 import readfcs
 
-from src.flowsom import FlowSOM
-from src.fs_dataclasses import (
+from src.flowsom import (
+    FlowSOM,
     FlowSOM_HCCParameters,
     FlowSOM_MSTParameters,
     FlowSOM_SOMParameters,
