@@ -8,6 +8,7 @@ from minisom import MiniSom
 from scipy.cluster.hierarchy import fcluster, linkage
 from scipy.sparse.csgraph import minimum_spanning_tree
 from scipy.spatial.distance import pdist, squareform
+from sklearn.base import BaseEstimator, ClusterMixin
 from sklearn.cluster import AgglomerativeClustering
 
 from .fs_dataclasses import (
@@ -19,7 +20,7 @@ from .fs_plotting import fs_plot_feature_planes, fs_plot_mst, fs_plot_som
 from .fs_reporting import fs_report
 
 
-class FlowSOM:
+class FlowSOM(BaseEstimator, ClusterMixin):
     """
     FlowSOM is a class representing the FlowSOM algorithm. This algorithm is widely used
     in flow and mass cytometry data analysis.
@@ -48,8 +49,7 @@ class FlowSOM:
 
     Usage
     -----
-    >>> fs = FlowSOM(data, som_param, mst_param, hcc_param)
-    >>> fs.fit(data)
+    >>> model = FlowSOM(som_param, mst_param, hcc_param).fit(data)
 
     Notes
     -----
