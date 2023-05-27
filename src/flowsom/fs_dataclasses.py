@@ -24,10 +24,10 @@ class FlowSOM_SOMParameters:
         The distance measure to use in the SOM. Default is "euclidean".
     """
 
-    n_epochs: int = 10000
+    n_epochs: int = 100000
     shape: tuple[int, int] = (10, 10)
     sigma: float = 1.0
-    alpha: float = 0.5
+    alpha: float = 0.05
     neighbourhood_function: str = "gaussian"
     activiation_distance: str = "euclidean"
 
