@@ -4,17 +4,18 @@ repos:
   rev: v4.4.0
   hooks:
   -   id: check-yaml
-      # ensures valid yaml
+      files: src/.*
   -   id: end-of-file-fixer
-      # fixes eof issues
+      files: src/.*
   -   id: trailing-whitespace
-      # removes trailing spaces
+      files: src/.*
 
 - repo: https://github.com/pycqa/isort
   rev: 5.12.0
   hooks:
     - id: isort
       name: "isort:   sorts imports"
+      files: src/.*
 
 - repo: https://github.com/psf/black
   rev: 23.3.0
@@ -22,6 +23,7 @@ repos:
   -   id: black
       name: "black:   formats python code"
       language_version: python3
+      files: src/.*
 
 - repo: https://github.com/PyCQA/flake8
   rev: 6.0.0
@@ -31,6 +33,7 @@ repos:
       additional_dependencies:
         - flake8-black>=0.1.1
       language_version: python3
+      files: src/.*
 
 - repo: https://github.com/PyCQA/bandit
   rev: 1.7.5
@@ -38,3 +41,4 @@ repos:
     - id: bandit
       name: "bandit:  checks security issues"
       args: ["--quiet", "--skip", "B101", "test/"]
+      files: src/.*

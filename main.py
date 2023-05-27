@@ -22,3 +22,7 @@ mst_param = FlowSOM_MSTParameters()
 hcc_param = FlowSOM_HCCParameters(n_bootstrap=10, n_clusters=12)
 
 model = FlowSOM(som_param=som_param, hcc_param=hcc_param).fit(data, verbose=True)
+
+
+
+
