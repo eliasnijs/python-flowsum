@@ -2,8 +2,10 @@ import os
 
 import numpy as np
 
+from .fs_utils import fs_log
 
-def fs_report(model, save="report/", generate_images=True):
+
+def fs_report(model, save="report/", generate_images=True, verbose=True):
     """
     Generates a detailed report for a trained FlowSOM model.
 
@@ -27,13 +29,17 @@ def fs_report(model, save="report/", generate_images=True):
         subdirectory under the directory specified in 'save'. If False, it will use the
         images already present in this subdirectory. Defaults to True.
 
+    verbose : bool
+        If set to True, the function will log the state of the function. If False,
+        it will not. Defaults to True.
+
     Returns
     -------
     None
 
     Usage
     -----
-    >>> fs_report(model, save="report/", generate_images=True)
+    > fs_report(model, save="report/", generate_images=True)
 
     Notes
     -----
@@ -45,7 +51,7 @@ def fs_report(model, save="report/", generate_images=True):
     """
 
     # Setup folder structure
-    print(">>> generating report/ folder")
+    fs_log("generating report", verbose)
     os.makedirs(save, exist_ok=True)
     report_file = os.path.join(save, "report.md")
     image_folder = os.path.join(save, "images/")
@@ -53,19 +59,19 @@ def fs_report(model, save="report/", generate_images=True):
 
     # Generate the plots
     if generate_images:
-        print(">>> generating plots (1/5): feature planes")
+        fs_log("generating plots (1/5): feature planes", verbose)
         model.plot_feature_planes(save=image_folder + "feature_planes.png", show=False)
-        print(">>> generating plots (2/5): som without clusters ")
+        fs_log("generating plots (2/5): som without clusters ", verbose)
         model.plot_som(
-            save=image_folder + "som_noclusters.png", show=False, show_clusters=False
+            save=image_folder + "som_noclusters.png", show=False, show_mclusters=False
         )
-        print(">>> generating plots (3/5): mst without clusters")
+        fs_log("generating plots (3/5): mst without clusters", verbose)
         model.plot_mst(
-            save=image_folder + "mst_noclusters.png", show=False, show_clusters=False
+            save=image_folder + "mst_noclusters.png", show=False, show_mclusters=False
         )
-        print(">>> generating plots (4/5): som with clusters")
+        fs_log("generating plots (4/5): som with clusters", verbose)
         model.plot_som(save=image_folder + "som_wclusters.png", show=False)
-        print(">>> generating plots (5/5): mst with clusters")
+        fs_log("generating plots (5/5): mst with clusters", verbose)
         model.plot_mst(save=image_folder + "mst_wclusters.png", show=False)
 
     report_string = f"""
@@ -79,7 +85,7 @@ Total Number of Metaclusters | `{model.hcc_param.n_clusters}`
 Total Number of Clusters | `{model.som_param.shape[0]*model.som_param.shape[1]}`
 Markers Used | `{list(model.data.columns)}`
 
-## :gear: Model Parameters
+## Model Parameters
 
 The following parameters were used to train the FlowSOM model:
 
@@ -107,14 +113,14 @@ Parameter | Value
 Number of Clusters | `{model.hcc_param.n_clusters}`
 Linkage Method | `{model.hcc_param.linkage_method}`
 
-## :bar_chart: Analysis Results
+## Analysis Results
 
 ### Visualisations
 The following images visualize different aspects of the FlowSOM analysis.
 
 #### Overview
 
-| | metaclusters :x: | metaclusters :white_check_mark: |
+| | no metaclusters | with metaclusters |
 -|-|-
 Grid | ![SOM no clusters ](images/som_noclusters.png) | ![SOM](images/som_wclusters.png)
 MST | ![MST no clusters](images/mst_noclusters.png) | ![MST](images/mst_wclusters.png)
@@ -136,6 +142,7 @@ Metacluster | Nr. of Cells | % of Cells | Nr. of Clusters | Clusters
 --- | --- | --- | --- | ---
 """
 
+    fs_log("compiling numerical results", verbose)
     # Predictions based on training data
     winners = np.array([model.som.winner(x) for x in model.data.values])
     winners = np.ravel_multi_index(winners.T, model.som.get_weights().shape[:2])
@@ -179,3 +186,5 @@ Neuron | Nr. of Cells | % of Total Cells | Metacluster | % in Metacluster
 
     with open(report_file, "w") as f:
         f.write(report_string)
+
+    fs_log("report finished", verbose)

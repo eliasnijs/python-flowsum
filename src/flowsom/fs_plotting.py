@@ -1,12 +1,11 @@
-from math import pi
-
 import matplotlib.gridspec as gridspec
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
+import seaborn as sns
 
 
-def fs_plot_star_chart(ax, max_weight, angles, values, colors, legend):
+def fs_plot_star_chart(ax, max_weight, angles, values, colors):
     """
     Generates a star (also known as radar or spider) chart on the given matplotlib Axes.
 
@@ -53,24 +52,29 @@ def fs_plot_star_chart(ax, max_weight, angles, values, colors, legend):
     ax.set_facecolor("white")
     ax.grid(alpha=0.25)
     ax.spines["polar"].set_alpha(0.25)
+
+    legend = []
     for k in range(len(angles) - 1):
-        ax.plot(
-            [0, angles[k], angles[k + 1], 0],
-            [0, values[k], values[k], 0],
-            color=colors[k],
-            zorder=10,
-        )
         (fill,) = ax.fill(
             [angles[k], angles[k + 1], 0],
             [values[k], values[k], 0],
             color=colors[k],
-            alpha=0.5,
+            alpha=1.0,
             zorder=10,
         )
         legend.append(fill)
 
+    return legend
 
-def fs_plot_som(fs, save=None, show=True, show_clusters=True):
+
+def fs_plot_som(
+    fs,
+    save=None,
+    show=True,
+    show_mclusters=True,
+    colors=sns.color_palette("Spectral", as_cmap=True),
+    hcc_colors=sns.color_palette("cubehelix", as_cmap=True),
+):
     """
     Generates a grid of star charts representing the FlowSOM Self-Organizing Map (SOM).
     Each neuron in the SOM is visualized as a star chart, with the neuron's weights
@@ -85,13 +89,13 @@ def fs_plot_som(fs, save=None, show=True, show_clusters=True):
         saved. Default is None.
     show : bool, optional
         If True, the plot will be displayed. Default is True.
-    show_clusters : bool, optional
+    show_mclusters : bool, optional
         If True, different clusters in the SOM will be marked with different colors.
         Default is True.
 
     Usage
     -----
-    >>> fs_plot_som(fs, save="path/to/save", show=True, show_clusters=True)
+    >>> fs_plot_som(fs, save="path/to/save", show=True, show_mclusters=True)
 
     Notes
     -----
@@ -107,13 +111,15 @@ def fs_plot_som(fs, save=None, show=True, show_clusters=True):
     weights = fs.som.get_weights()
     max_weight = np.max(weights)
 
+    # print(weights)
+
     # Get the column names from the DataFrame to use as labels
     labels = fs.data.columns.values.tolist()
 
-    # Define the properties for the radar chart
+    # Setup plot
     num_vars = weights.shape[-1]
-    angles = [n / float(num_vars) * 2 * pi for n in range(num_vars)]
-    angles += angles[:1]
+    angles = np.linspace(0, 2 * np.pi, num_vars, endpoint=False)
+    angles = np.append(angles, angles[0])
     labels += labels[:1]
 
     fig, ax = plt.subplots(
@@ -124,42 +130,52 @@ def fs_plot_som(fs, save=None, show=True, show_clusters=True):
     )
     fig.suptitle("FlowSOM: Grid")
 
-    colors = plt.cm.tab20(np.linspace(0, 1, len(labels)))
-    hcc_colors = plt.cm.tab20(np.linspace(0, 1, fs.hcc_param.n_clusters))
+    colors = colors(np.linspace(0, 1, len(labels)))
+    hcc_colors = hcc_colors(np.linspace(0, 1, fs.hcc_param.n_clusters))
 
-    legend_fills = []
+    # Render starcharts
+    cluster_fills = []
     for i in range(fs.som_param.shape[0]):
         for j in range(fs.som_param.shape[1]):
-            values = np.concatenate((weights[i, j], weights[i, j][:1]))
-            i_cluster = fs.hcc[i * fs.som_param.shape[0] + j]
-            fs_plot_star_chart(
-                ax[i, j], max_weight, angles, values, colors, legend_fills
+            values = np.append(weights[i, j], weights[i, j][0])
+            cluster_fills = fs_plot_star_chart(
+                ax[i, j], max_weight, angles, values, colors
             )
 
-    if show_clusters:
+    # Render metaclusters
+    if show_mclusters:
+        mcluster_fills = {}
         ax_hcc = fig.add_subplot(111)
         ax_hcc.set_facecolor("#00000000")
         ax_hcc.axis("off")
+        ax_hcc.set_zorder(-1)
         for i, ax_rows in enumerate(ax):
             for j, ax_node in enumerate(ax_rows):
                 pos = ax_node.get_position()
                 i_cluster = fs.hcc[i * fs.som_param.shape[0] + j] - 1
-                circle = plt.Rectangle(
-                    (pos.x0 - 0.005, pos.y0 - 0.005),
-                    pos.width + 0.01,
-                    pos.height + 0.01,
+                rect = plt.Rectangle(
+                    (pos.x0 - 0.007, pos.y0 - 0.007),
+                    pos.width + 0.014,
+                    pos.height + 0.014,
                     # (pos.x0 + pos.width / 2.0, pos.y0 + pos.height / 2.0),
                     # min(pos.width, pos.height) / 2.0,
-                    edgecolor=(*hcc_colors[i_cluster][:3], 0.4),
-                    facecolor=(*hcc_colors[i_cluster][:3], 0.15),
-                    zorder=20,
+                    facecolor=(*hcc_colors[i_cluster][:3], 1.0),
                     transform=fig.transFigure,
                 )
-                ax_hcc.add_artist(circle)
+                ax_hcc.add_artist(rect)
+                mcluster_fills[i_cluster] = rect
+        mcluster_fills_keys, mcluster_fills = zip(*sorted(mcluster_fills.items()))
+        legend = fig.legend(
+            mcluster_fills,
+            mcluster_fills_keys,
+            loc="upper right",
+            title="Startcharts Legend",
+        )
+        for line in legend.get_lines():
+            line.set_linewidth(5)
 
-    legend = fig.legend(
-        legend_fills, labels[:-1], loc="upper right", title="Startcharts Legend"
-    )
+    # Display legend
+    legend = fig.legend(cluster_fills, labels, loc="upper left", title="Metaclusters")
     for line in legend.get_lines():
         line.set_linewidth(5)
 
@@ -169,7 +185,14 @@ def fs_plot_som(fs, save=None, show=True, show_clusters=True):
         plt.savefig(save)
 
 
-def fs_plot_mst(fs, save=None, show=True, show_clusters=True):
+def fs_plot_mst(
+    fs,
+    save=None,
+    show=True,
+    show_mclusters=True,
+    colors=sns.color_palette("Spectral", as_cmap=True),
+    hcc_colors=sns.color_palette("cubehelix", as_cmap=True),
+):
     """
     Generates a Minimum Spanning Tree (MST) plot for the FlowSOM model, where each node
     in the grid is visualized as a star chart.
@@ -183,13 +206,13 @@ def fs_plot_mst(fs, save=None, show=True, show_clusters=True):
         saved. Default is None.
     show : bool, optional
         If True, the plot will be displayed. Default is True.
-    show_clusters : bool, optional
+    show_mclusters : bool, optional
         If True, different clusters in the MST will be marked with different colors.
         Default is True.
 
     Usage
     -----
-    >>> fs_plot_mst(fs, save="path/to/save", show=True, show_clusters=True)
+    >>> fs_plot_mst(fs, save="path/to/save", show=True, show_mclusters=True)
 
     Notes
     -----
@@ -208,8 +231,8 @@ def fs_plot_mst(fs, save=None, show=True, show_clusters=True):
     labels = fs.data.columns.values.tolist()
 
     num_vars = weights.shape[-1]
-    angles = [n / float(num_vars) * 2 * pi for n in range(num_vars)]
-    angles += angles[:1]
+    angles = np.linspace(0, 2 * np.pi, num_vars, endpoint=False)
+    angles = np.append(angles, angles[0])
     labels += labels[:1]
 
     mst = fs.mst.toarray()
@@ -235,34 +258,45 @@ def fs_plot_mst(fs, save=None, show=True, show_clusters=True):
     fig = plt.figure(figsize=(25, 25))
     fig.suptitle("FlowSOM: MST")
 
-    colors = plt.cm.tab20(np.linspace(0, 1, len(labels)))
-    hcc_colors = plt.cm.tab20(np.linspace(0, 1, fs.hcc_param.n_clusters))
+    colors = colors(np.linspace(0, 1, len(labels)))
+    hcc_colors = hcc_colors(np.linspace(0, 1, fs.hcc_param.n_clusters))
 
-    legend_fills = []
+    cluster_fills = []
     for i_node, (x, y) in pos.items():
         grid_x = int(x * 1000)
         grid_y = int(y * 1000)
         ax = plt.subplot(
             gs[grid_y - 15 : grid_y + 15, grid_x - 15 : grid_x + 15], polar=True
         )
+        ax.set_zorder(10 + i_node)
         ax.set_autoscale_on(False)
         values = np.concatenate((weights[i_node], weights[i_node][:1]))
-        fs_plot_star_chart(ax, max_weight, angles, values, colors, legend_fills)
+        cluster_fills = fs_plot_star_chart(ax, max_weight, angles, values, colors)
 
-    if show_clusters:
+    if show_mclusters:
+        mcluster_fills = {}
         ax_hcc = fig.add_subplot(111)
         ax_hcc.set_facecolor("#00000000")
         ax_hcc.axis("off")
+        ax_hcc.set_zorder(-1)
         for node, (x, y) in pos.items():
             i_cluster = fs.hcc[node] - 1
             circle = plt.Circle(
                 (x, 1 - y),
                 0.02,
-                edgecolor=(*hcc_colors[i_cluster][:3], 0.4),
-                facecolor=(*hcc_colors[i_cluster][:3], 0.15),
-                zorder=20,
+                facecolor=(*hcc_colors[i_cluster][:3], 1.0),
             )
             ax_hcc.add_artist(circle)
+            mcluster_fills[i_cluster] = circle
+        mcluster_fills_keys, mcluster_fills = zip(*sorted(mcluster_fills.items()))
+        legend = fig.legend(
+            mcluster_fills,
+            mcluster_fills_keys,
+            loc="upper right",
+            title="Metaclusters",
+        )
+        for line in legend.get_lines():
+            line.set_linewidth(5)
 
     ax_edges = fig.add_subplot(111)
     ax_edges.set_facecolor("#00000000")
@@ -282,7 +316,7 @@ def fs_plot_mst(fs, save=None, show=True, show_clusters=True):
         )
 
     legend = fig.legend(
-        legend_fills, labels[:-1], loc="upper right", title="Startcharts Legend"
+        cluster_fills, labels[:-1], loc="upper left", title="Startcharts Legend"
     )
     for line in legend.get_lines():
         line.set_linewidth(5)
