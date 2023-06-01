@@ -63,6 +63,5 @@ class FlowSOM_HCCParameters:
         The number of bootstrap samples to generate in HCC. Default is 100.
     """
 
-    n_clusters: int = 10
-    linkage_method: str = "ward"
-    n_bootstrap: int = 100
+    n_clusters: int = 12
+    linkage_method: str = "average"

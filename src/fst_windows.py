@@ -57,10 +57,6 @@ def win_parameters(window_dim, som_parameters, mst_parameters, hcc_parameters):
     _, hcc_parameters.linkage_method = imgui.input_text(
         "##linkage_method", hcc_parameters.linkage_method, 256
     )
-    imgui.text("n_bootstrap")
-    _, hcc_parameters.n_bootstrap = imgui.input_int(
-        "##n_bootstrap", hcc_parameters.n_bootstrap
-    )
 
     imgui.end()
 

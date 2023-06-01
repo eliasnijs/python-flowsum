@@ -131,7 +131,7 @@ def fs_plot_som(
     fig.suptitle("FlowSOM: Grid")
 
     colors = colors(np.linspace(0, 1, len(labels)))
-    hcc_colors = hcc_colors(np.linspace(0, 1, fs.hcc_param.n_clusters))
+    hcc_colors = hcc_colors(np.linspace(0, 0.9, fs.hcc_param.n_clusters))
 
     # Render starcharts
     cluster_fills = []
@@ -169,13 +169,15 @@ def fs_plot_som(
             mcluster_fills,
             mcluster_fills_keys,
             loc="upper right",
-            title="Startcharts Legend",
+            title="Metaclusters Legend",
         )
         for line in legend.get_lines():
             line.set_linewidth(5)
 
     # Display legend
-    legend = fig.legend(cluster_fills, labels, loc="upper left", title="Metaclusters")
+    legend = fig.legend(
+        cluster_fills, labels, loc="upper left", title="Starcharts Legend"
+    )
     for line in legend.get_lines():
         line.set_linewidth(5)
 
@@ -259,7 +261,7 @@ def fs_plot_mst(
     fig.suptitle("FlowSOM: MST")
 
     colors = colors(np.linspace(0, 1, len(labels)))
-    hcc_colors = hcc_colors(np.linspace(0, 1, fs.hcc_param.n_clusters))
+    hcc_colors = hcc_colors(np.linspace(0, 0.9, fs.hcc_param.n_clusters))
 
     cluster_fills = []
     for i_node, (x, y) in pos.items():
@@ -293,7 +295,7 @@ def fs_plot_mst(
             mcluster_fills,
             mcluster_fills_keys,
             loc="upper right",
-            title="Metaclusters",
+            title="Metaclusters Legend",
         )
         for line in legend.get_lines():
             line.set_linewidth(5)

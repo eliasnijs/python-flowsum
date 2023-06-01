@@ -75,8 +75,8 @@ def main():
             )
 
         win_main(window_dim, texture_id, image)
-        # Render everything
 
+        # Render everything
         gl.glBindTexture(gl.GL_TEXTURE_2D, texture_id)
         gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER, gl.GL_LINEAR)
         gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MIN_FILTER, gl.GL_LINEAR)

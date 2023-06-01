@@ -139,17 +139,15 @@ class FlowSOM(BaseEstimator, ClusterMixin):
             "constructing model (3/3): building hierarchical consensus clusters...",
             verbose,
         )
+
         consensus_matrix = np.zeros((nodes.shape[0], nodes.shape[0]))
-        for _ in range(self.hcc_param.n_bootstrap):
-            model = AgglomerativeClustering(n_clusters=self.hcc_param.n_clusters)
-            clustering = model.fit_predict(nodes)
-            for i in range(len(clustering)):
-                for j in range(i + 1, len(clustering)):
-                    if clustering[i] == clustering[j]:
-                        consensus_matrix[i, j] += 1
-                        consensus_matrix[j, i] += 1
-        consensus_matrix /= self.hcc_param.n_bootstrap
-        Z = linkage(consensus_matrix, method="complete")
+
+        clustering = AgglomerativeClustering(
+            n_clusters=self.hcc_param.n_clusters, linkage=self.hcc_param.linkage_method
+        ).fit_predict(nodes)
+        for i in range(len(clustering)):
+            consensus_matrix[i, clustering == clustering[i]] += 1
+        Z = linkage(consensus_matrix, method=self.hcc_param.linkage_method)
         self.hcc = fcluster(Z, self.hcc_param.n_clusters, criterion="maxclust")
 
         fs_log("model constructed\n", verbose)
