@@ -1,4 +1,3 @@
-import matplotlib.gridspec as gridspec
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
@@ -256,7 +255,6 @@ def fs_plot_mst(
         for node, (x, y) in pos.items()
     }
 
-    gs = gridspec.GridSpec(1000, 1000)
     fig = plt.figure(figsize=(25, 25))
     fig.suptitle("FlowSOM: MST")
 
@@ -265,11 +263,12 @@ def fs_plot_mst(
 
     cluster_fills = []
     for i_node, (x, y) in pos.items():
-        grid_x = int(x * 1000)
-        grid_y = int(y * 1000)
-        ax = plt.subplot(
-            gs[grid_y - 15 : grid_y + 15, grid_x - 15 : grid_x + 15], polar=True
-        )
+        norm_w = 30 / 1000
+        norm_h = 30 / 1000
+        norm_x = 0.05 + x * 0.9 - norm_w / 2
+        norm_y = 0.05 + y * 0.9 + norm_h / 2
+        ax = fig.add_axes([norm_x, 1 - norm_y, norm_w, norm_h], polar=True)
+        ax.set_facecolor("white")
         ax.set_zorder(10 + i_node)
         ax.set_autoscale_on(False)
         values = np.concatenate((weights[i_node], weights[i_node][:1]))
@@ -277,19 +276,24 @@ def fs_plot_mst(
 
     if show_mclusters:
         mcluster_fills = {}
-        ax_hcc = fig.add_subplot(111)
-        ax_hcc.set_facecolor("#00000000")
-        ax_hcc.axis("off")
-        ax_hcc.set_zorder(-1)
         for node, (x, y) in pos.items():
             i_cluster = fs.hcc[node] - 1
+            norm_w = 42 / 1000
+            norm_h = 42 / 1000
+            norm_x = 0.05 + x * 0.9 - norm_w / 2
+            norm_y = 0.05 + y * 0.9 + norm_h / 2
+            ax = fig.add_axes([norm_x, 1 - norm_y, norm_w, norm_h])
+            ax.set_aspect(1)
+            ax.axis("off")
             circle = plt.Circle(
-                (x, 1 - y),
-                0.02,
+                (0.5, 0.5),
+                0.5,
                 facecolor=(*hcc_colors[i_cluster][:3], 1.0),
+                transform=ax.transAxes,
             )
-            ax_hcc.add_artist(circle)
+            ax.add_patch(circle)
             mcluster_fills[i_cluster] = circle
+
         mcluster_fills_keys, mcluster_fills = zip(*sorted(mcluster_fills.items()))
         legend = fig.legend(
             mcluster_fills,
@@ -300,15 +304,15 @@ def fs_plot_mst(
         for line in legend.get_lines():
             line.set_linewidth(5)
 
-    ax_edges = fig.add_subplot(111)
+    ax_edges = fig.add_axes([0, 0, 1, 1])
     ax_edges.set_facecolor("#00000000")
-    ax_edges.set_xticklabels([])
-    ax_edges.set_yticklabels([])
     ax_edges.axis("off")
     for edge in G.edges:
         node1, node2 = edge
-        x1, y1 = pos[node1]
-        x2, y2 = pos[node2]
+        x1 = 0.05 + pos[node1][0] * 0.9
+        y1 = 0.05 + pos[node1][1] * 0.9
+        x2 = 0.05 + pos[node2][0] * 0.9
+        y2 = 0.05 + pos[node2][1] * 0.9
         ax_edges.plot(
             [x1, x2],
             [1 - y1, 1 - y2],

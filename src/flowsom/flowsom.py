@@ -5,7 +5,6 @@ import dask.dataframe as dd
 import numpy as np
 import pandas as pd
 from minisom import MiniSom
-from scipy.cluster.hierarchy import fcluster, linkage
 from scipy.sparse.csgraph import minimum_spanning_tree
 from scipy.spatial.distance import pdist, squareform
 from sklearn.base import BaseEstimator, ClusterMixin
@@ -139,16 +138,9 @@ class FlowSOM(BaseEstimator, ClusterMixin):
             "constructing model (3/3): building hierarchical consensus clusters...",
             verbose,
         )
-
-        consensus_matrix = np.zeros((nodes.shape[0], nodes.shape[0]))
-
-        clustering = AgglomerativeClustering(
+        self.hcc = AgglomerativeClustering(
             n_clusters=self.hcc_param.n_clusters, linkage=self.hcc_param.linkage_method
         ).fit_predict(nodes)
-        for i in range(len(clustering)):
-            consensus_matrix[i, clustering == clustering[i]] += 1
-        Z = linkage(consensus_matrix, method=self.hcc_param.linkage_method)
-        self.hcc = fcluster(Z, self.hcc_param.n_clusters, criterion="maxclust")
 
         fs_log("model constructed\n", verbose)
         return self
