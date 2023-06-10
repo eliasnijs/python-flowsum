@@ -220,8 +220,6 @@ def fs_plot_mst(
     weights = fs.nodes_avg_markers
     weights = weights.reshape(-1, weights.shape[-1])
 
-    print(weights.shape)
-
     labels = fs.data.columns.values.tolist()
 
     num_vars = weights.shape[-1]

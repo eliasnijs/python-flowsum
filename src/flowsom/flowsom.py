@@ -143,7 +143,6 @@ class FlowSOM(BaseEstimator, ClusterMixin):
                 lowest_marker = node_lowest_marker
         for i in range(n_nodes):
             nodes_avg_markers[i] -= lowest_marker
-            print(np.all(nodes_avg_markers[i] >= 0))
 
         min_marker = np.min(nodes_avg_markers)
         max_marker = np.max(nodes_avg_markers)
