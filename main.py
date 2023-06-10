@@ -10,15 +10,17 @@ from src.flowsom import (
 
 # Reading the data
 data = readfcs.ReadFCS("resources/Levine_13dim.fcs").data
-
 data = data.drop("label", axis=1)
 data = (data - np.mean(data, axis=0)) / np.std(data, axis=0)
-
 print(data)
 
-# Traning a model
-som_param = FlowSOM_SOMParameters(n_epochs=1000, shape=(10, 10), alpha=0.5, sigma=1.0)
+# Training a model
+som_param = FlowSOM_SOMParameters(n_iterations=10000, shape=(10, 10), alpha=0.05, sigma=1.0)
 mst_param = FlowSOM_MSTParameters()
-hcc_param = FlowSOM_HCCParameters(n_bootstrap=10, n_clusters=12)
+hcc_param = FlowSOM_HCCParameters(n_clusters=24)
+model = FlowSOM(som_param, mst_param, hcc_param).fit(data, verbose=True)
 
-model = FlowSOM(som_param=som_param, hcc_param=hcc_param).fit(data, verbose=True)
+# Visualising Result
+# model.plot_som(save="data/som_wmclusters.png", show=False, show_mclusters=True)
+# model.plot_mst(save="data/mst_wmclusters.png", show=False, show_mclusters=True)
+model.report(save="data/report/", verbose=True)

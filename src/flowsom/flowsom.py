@@ -5,7 +5,6 @@ import dask.dataframe as dd
 import numpy as np
 import pandas as pd
 from minisom import MiniSom
-from scipy.cluster.hierarchy import fcluster, linkage
 from scipy.sparse.csgraph import minimum_spanning_tree
 from scipy.spatial.distance import pdist, squareform
 from sklearn.base import BaseEstimator, ClusterMixin
@@ -18,6 +17,7 @@ from .fs_dataclasses import (
 )
 from .fs_plotting import fs_plot_feature_planes, fs_plot_mst, fs_plot_som
 from .fs_reporting import fs_report
+from .fs_utils import fs_log
 
 
 class FlowSOM(BaseEstimator, ClusterMixin):
@@ -76,7 +76,7 @@ class FlowSOM(BaseEstimator, ClusterMixin):
         if n_clusters is not None:
             self.hcc_param.n_clusters = n_clusters
 
-    def fit(self, data: pd.DataFrame, verbose=False):
+    def fit(self, X: pd.DataFrame, y=None, verbose=False):
         """
         Trains the FlowSOM model on the provided dataset.
 
@@ -104,12 +104,13 @@ class FlowSOM(BaseEstimator, ClusterMixin):
         The verbose parameter can be used to monitor the progress of training. Upon
         completion, the function returns the trained model instance.
         """
+        data = X
         if isinstance(data, np.ndarray):
             data = pd.DataFrame(data)
-
         self.data = data
 
         # Train Self Organizing Map
+        fs_log("constructing model (1/3): training SOM...", verbose)
         som = MiniSom(
             self.som_param.shape[0],
             self.som_param.shape[1],
@@ -121,30 +122,53 @@ class FlowSOM(BaseEstimator, ClusterMixin):
             random_seed=0,
         )
         som.train_batch(
-            data.values, num_iteration=self.som_param.n_epochs, verbose=verbose
+            data.values, num_iteration=self.som_param.n_iterations, verbose=verbose
         )
         self.som = som
 
+        # Save average marker values for the fitted data, tranform so all values
+        # are positive and normalize
+        winners = np.array([som.winner(x) for x in data.values])
+        winners = np.ravel_multi_index(winners.T, som.get_weights().shape[:2])
+
+        n_nodes = self.som_param.shape[0] * self.som_param.shape[1]
+        nodes_avg_markers = np.zeros((n_nodes, len([*data.columns])))
+
+        lowest_marker = 0
+        for i in range(n_nodes):
+            cells = np.where(winners == i)[0]
+            nodes_avg_markers[i] = np.mean(data.values[cells], axis=0)
+            node_lowest_marker = np.min(nodes_avg_markers[i])
+            if node_lowest_marker < lowest_marker:
+                lowest_marker = node_lowest_marker
+        for i in range(n_nodes):
+            nodes_avg_markers[i] -= lowest_marker
+
+        min_marker = np.min(nodes_avg_markers)
+        max_marker = np.max(nodes_avg_markers)
+        nodes_avg_markers = (nodes_avg_markers - min_marker) / (max_marker - min_marker)
+
+        self.nodes_avg_markers = nodes_avg_markers.reshape(
+            self.som_param.shape[0], self.som_param.shape[1], len([*self.data.columns])
+        )
+
         # Build Minimum Spanning Tree
+        fs_log("constructing model (2/3): building MST...", verbose)
         weights = som.get_weights()
         nodes = weights.reshape(-1, weights.shape[-1])
         distance_matrix = squareform(pdist(nodes, self.mst_param.distance_metric))
         self.mst = minimum_spanning_tree(distance_matrix)
 
         # Hierarchical Consensus Metaclustering
-        consensus_matrix = np.zeros((nodes.shape[0], nodes.shape[0]))
-        for _ in range(self.hcc_param.n_bootstrap):
-            model = AgglomerativeClustering(n_clusters=self.hcc_param.n_clusters)
-            clustering = model.fit_predict(nodes)
-            for i in range(len(clustering)):
-                for j in range(i + 1, len(clustering)):
-                    if clustering[i] == clustering[j]:
-                        consensus_matrix[i, j] += 1
-                        consensus_matrix[j, i] += 1
-        consensus_matrix /= self.hcc_param.n_bootstrap
-        Z = linkage(consensus_matrix, method="complete")
-        self.hcc = fcluster(Z, self.hcc_param.n_clusters, criterion="maxclust")
+        fs_log(
+            "constructing model (3/3): building hierarchical consensus clusters...",
+            verbose,
+        )
+        self.hcc = AgglomerativeClustering(
+            n_clusters=self.hcc_param.n_clusters, linkage=self.hcc_param.linkage_method
+        ).fit_predict(nodes)
 
+        fs_log("model constructed\n", verbose)
         return self
 
     def predict(self, data: pd.DataFrame) -> Optional[pd.Series]:
@@ -238,7 +262,7 @@ class FlowSOM(BaseEstimator, ClusterMixin):
         self.fit(data, verbose)
         return self.predict(data)
 
-    def plot_som(self, save=None, show=True, show_clusters=True):
+    def plot_som(self, save=None, show=True, show_mclusters=True):
         """
         Generates a grid of star charts representing the FlowSOM
         Self-Organizing Map (SOM). Each neuron in the SOM is visualized as a star chart,
@@ -251,13 +275,13 @@ class FlowSOM(BaseEstimator, ClusterMixin):
             saved. Default is None.
         show : bool, optional
             If True, the plot will be displayed. Default is True.
-        show_clusters : bool, optional
+        show_mclusters : bool, optional
             If True, different clusters in the SOM will be marked with different colors.
             Default is True.
 
         Usage
         -----
-        >>> fs_plot_som(fs, save="path/to/save", show=True, show_clusters=True)
+        >>> fs_plot_som(fs, save="path/to/save", show=True, show_mclusters=True)
 
         Notes
         -----
@@ -277,9 +301,9 @@ class FlowSOM(BaseEstimator, ClusterMixin):
             print("[Error]: HCC has not been trained yet")
             return None
 
-        fs_plot_som(self, save, show, show_clusters)
+        fs_plot_som(self, save, show, show_mclusters)
 
-    def plot_mst(self, save=None, show=True, show_clusters=True):
+    def plot_mst(self, save=None, show=True, show_mclusters=True):
         """
         Generates a Minimum Spanning Tree (MST) plot for the FlowSOM model, where each
         node in the grid is visualized as a star chart.
@@ -291,13 +315,13 @@ class FlowSOM(BaseEstimator, ClusterMixin):
             saved. Default is None.
         show : bool, optional
             If True, the plot will be displayed. Default is True.
-        show_clusters : bool, optional
+        show_mclusters : bool, optional
             If True, different clusters in the MST will be marked with different colors.
             Default is True.
 
         Usage
         -----
-        >>> fs_plot_mst(fs, save="path/to/save", show=True, show_clusters=True)
+        >>> fs_plot_mst(fs, save="path/to/save", show=True, show_mclusters=True)
 
         Notes
         -----
@@ -320,7 +344,7 @@ class FlowSOM(BaseEstimator, ClusterMixin):
             print("[Error]: HCC has not been trained yet")
             return None
 
-        fs_plot_mst(self, save, show, show_clusters)
+        fs_plot_mst(self, save, show, show_mclusters)
 
     def plot_feature_planes(self, save=None, show=True):
         """
@@ -356,7 +380,7 @@ class FlowSOM(BaseEstimator, ClusterMixin):
 
         fs_plot_feature_planes(self, save, show)
 
-    def report(self, path, generate_images=True):
+    def report(self, save="report/", generate_images=True, verbose=True):
         """
         Generates a detailed report for a trained FlowSOM model.
 
@@ -369,9 +393,6 @@ class FlowSOM(BaseEstimator, ClusterMixin):
 
         Parameters
         ----------
-        model : object
-            The trained FlowSOM model for which the report is to be generated.
-
         save : str, optional
             The directory to which the report will be saved. Defaults to "report/".
 
@@ -380,13 +401,17 @@ class FlowSOM(BaseEstimator, ClusterMixin):
             subdirectory under the directory specified in 'save'. If False, it will use
             the images already present in this subdirectory. Defaults to True.
 
+        verbose : bool
+            If set to True, the function will log the state of the function. If False,
+            it will not. Defaults to True.
+
         Returns
         -------
         None
 
         Usage
         -----
-        >>> fs_report(model, save="report/", generate_images=True)
+        >>> model.report(save="report/", generate_images=True)
 
         Notes
         -----
@@ -408,7 +433,7 @@ class FlowSOM(BaseEstimator, ClusterMixin):
         if self.hcc is None:
             print("[Error]: HCC has not been trained yet")
             return None
-        return fs_report(self, path, generate_images)
+        return fs_report(self, save, generate_images, verbose)
 
     def as_df(self, lazy=True, n_partitions=10):
         """

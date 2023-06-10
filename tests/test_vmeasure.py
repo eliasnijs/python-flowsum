@@ -26,8 +26,9 @@ def test_vmeasure():
     n_clusters = np.unique(y).shape[0]
 
     estimator = FlowSOM(n_clusters=n_clusters)
-    estimator.fit(X)
+    estimator.fit(X, verbose=True)
     y_pred = estimator.predict(X)
 
     v_measure = v_measure_score(y, y_pred)
+    print(v_measure)
     assert v_measure > min_vmeasure, f"v_measure {v_measure} is not higher than {min_vmeasure}"
