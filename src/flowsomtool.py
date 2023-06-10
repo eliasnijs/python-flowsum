@@ -68,7 +68,8 @@ def main():
         win_select_files(file_paths)
         win_controlls(window_dim, image)
 
-        if image.i_plot >= 0 and image.i_plot != prev_plot:
+        if (image.i_plot >= 0 and image.i_plot != prev_plot) or image.redraw:
+            image.redraw = False
             plotnames = [
                 "mst_wclusters.png",
                 "mst_noclusters.png",

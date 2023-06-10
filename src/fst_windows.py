@@ -19,16 +19,22 @@ def win_parameters(window_dim, som_parameters, mst_parameters, hcc_parameters):
     _, som_parameters.n_iterations = imgui.input_int(
         "##n_iterations", som_parameters.n_iterations
     )
+    som_parameters.n_iterations = max(0, som_parameters.n_iterations)
+
     imgui.text("sigma")
     _, som_parameters.sigma = imgui.slider_float(
         "##sigma_slider", som_parameters.sigma, 0, 1
     )
     _, som_parameters.sigma = imgui.input_float("##sigma_input", som_parameters.sigma)
+    som_parameters.sigma = max(0, som_parameters.sigma)
+
     imgui.text("alpha")
     _, som_parameters.alpha = imgui.slider_float(
         "##alpha_slider", som_parameters.alpha, 0, 1
     )
     _, som_parameters.alpha = imgui.input_float("##alpha_input", som_parameters.alpha)
+    som_parameters.alpha = max(0, som_parameters.alpha)
+
     imgui.text("neighbourhood_function")
     _, som_parameters.neighbourhood_function = imgui.input_text(
         "##neighbourhood_function", som_parameters.neighbourhood_function, 256
@@ -55,6 +61,7 @@ def win_parameters(window_dim, som_parameters, mst_parameters, hcc_parameters):
     _, hcc_parameters.n_clusters = imgui.input_int(
         "##n_clusters", hcc_parameters.n_clusters
     )
+    hcc_parameters.n_clusters = max(1, hcc_parameters.n_clusters)
     imgui.text("linkage_method")
     _, hcc_parameters.linkage_method = imgui.input_text(
         "##linkage_method", hcc_parameters.linkage_method, 256
@@ -75,6 +82,7 @@ def win_actions(window_dim, flowsom, file_paths, image):
             flowsom.fit(data, verbose=True)
             flowsom.report(save="./.flowsom/report/", verbose=True)
             image.i_plot = 0
+            image.redraw = True
         else:
             print("No file was selected")
     imgui.same_line()
