@@ -122,9 +122,36 @@ class FlowSOM(BaseEstimator, ClusterMixin):
             random_seed=0,
         )
         som.train_batch(
-            data.values, num_iteration=self.som_param.n_epochs, verbose=verbose
+            data.values, num_iteration=self.som_param.n_iterations, verbose=verbose
         )
         self.som = som
+
+        # Save average marker values for the fitted data, tranform so all values
+        # are positive and normalize
+        winners = np.array([som.winner(x) for x in data.values])
+        winners = np.ravel_multi_index(winners.T, som.get_weights().shape[:2])
+
+        n_nodes = self.som_param.shape[0] * self.som_param.shape[1]
+        nodes_avg_markers = np.zeros((n_nodes, len([*data.columns])))
+
+        lowest_marker = 0
+        for i in range(n_nodes):
+            cells = np.where(winners == i)[0]
+            nodes_avg_markers[i] = np.mean(data.values[cells], axis=0)
+            node_lowest_marker = np.min(nodes_avg_markers[i])
+            if node_lowest_marker < lowest_marker:
+                lowest_marker = node_lowest_marker
+        for i in range(n_nodes):
+            nodes_avg_markers[i] -= lowest_marker
+            print(np.all(nodes_avg_markers[i] >= 0))
+
+        min_marker = np.min(nodes_avg_markers)
+        max_marker = np.max(nodes_avg_markers)
+        nodes_avg_markers = (nodes_avg_markers - min_marker) / (max_marker - min_marker)
+
+        self.nodes_avg_markers = nodes_avg_markers.reshape(
+            self.som_param.shape[0], self.som_param.shape[1], len([*self.data.columns])
+        )
 
         # Build Minimum Spanning Tree
         fs_log("constructing model (2/3): building MST...", verbose)

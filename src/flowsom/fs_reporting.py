@@ -93,7 +93,7 @@ The following parameters were used to train the FlowSOM model:
 
 Parameter | Value
 --- | ---
-Number of Epochs | `{model.som_param.n_epochs}`
+Number of Iterations | `{model.som_param.n_iterations}`
 Shape of SOM Grid | `{model.som_param.shape}`
 Neighbourhood ($\\sigma$) | `{model.som_param.sigma}`
 Learning Rate ($\\alpha$) | `{model.som_param.alpha}`

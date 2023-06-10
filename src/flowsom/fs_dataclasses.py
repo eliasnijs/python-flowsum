@@ -9,8 +9,8 @@ class FlowSOM_SOMParameters:
 
     Attributes
     ----------
-    n_epochs : int, optional
-        Number of epochs for SOM training. Default is 10000.
+    n_iterations : int, optional
+        Number of iterations for SOM training. Default is 10000.
     shape : tuple[int, int], optional
         The shape (rows, columns) of the SOM grid. Default is (10, 10).
     sigma : float, optional
@@ -25,10 +25,10 @@ class FlowSOM_SOMParameters:
         "cosine". Default is "euclidean".
     """
 
-    n_epochs: int = 100000
+    n_iterations: int = 100000
     shape: tuple[int, int] = (10, 10)
     sigma: float = 0.67
-    alpha: float = 0.1
+    alpha: float = 0.05
     neighbourhood_function: str = "gaussian"
     activiation_distance: str = "euclidean"
 

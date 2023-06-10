@@ -4,7 +4,7 @@ import numpy as np
 import seaborn as sns
 
 
-def fs_plot_star_chart(ax, max_weight, angles, values, colors):
+def fs_plot_star_chart(ax, angles, values, colors):
     """
     Generates a star (also known as radar or spider) chart on the given matplotlib Axes.
 
@@ -16,9 +16,6 @@ def fs_plot_star_chart(ax, max_weight, angles, values, colors):
     ----------
     ax : matplotlib.axes.Axes
         The Axes object where the star chart will be drawn.
-    max_weight : float
-        The maximum value for the radial axis, which defines the outermost circle of the
-        star chart.
     angles : list of float
         The angles (in radians) to position each axis of the star chart. The last angle
         should match the first to close the plot.
@@ -34,7 +31,7 @@ def fs_plot_star_chart(ax, max_weight, angles, values, colors):
 
     Usage
     -----
-    >>> plot_star_chart(ax, max_weight, angles, values, colors, legend)
+    >>> plot_star_chart(ax, angles, values, colors, legend)
 
     Notes
     -----
@@ -44,7 +41,7 @@ def fs_plot_star_chart(ax, max_weight, angles, values, colors):
     (spine) of the polar plot are semi-transparent.
     """
     ax.set_rorigin(0)
-    ax.set_ylim(0, max_weight)
+    ax.set_ylim(0, 1)
     ax.set_xticks(angles[:-1])
     ax.set_xticklabels([])
     ax.set_yticklabels([])
@@ -76,8 +73,8 @@ def fs_plot_som(
 ):
     """
     Generates a grid of star charts representing the FlowSOM Self-Organizing Map (SOM).
-    Each neuron in the SOM is visualized as a star chart, with the neuron's weights
-    acting as dimensions.
+    Each neuron in the SOM is visualized as a star chart, with the average marker
+    values of the corresponding cells.
 
     Parameters
     ----------
@@ -99,18 +96,15 @@ def fs_plot_som(
     Notes
     -----
     The fs_plot_som function presents the trained FlowSOM Self-Organizing Map in a
-    visually engaging manner. Each neuron's weights are depicted as star charts in a
-    grid format, allowing for easy comparison and identification of patterns. If
-    enabled, the function can also highlight different clusters within the SOM with
-    distinct colors.
+    visually engaging manner. Each neuron's cell's marker values are depicted as
+    star charts in a grid format, allowing for easy comparison and identification
+    of patterns. If enabled, the function can also highlight different clusters
+    within the SOM with distinct colors.
     """
     plt.clf()
 
-    # Get the weights of the SOM
-    weights = fs.som.get_weights()
-    max_weight = np.max(weights)
-
-    # print(weights)
+    # Get the marker values of the SOM
+    weights = fs.nodes_avg_markers
 
     # Get the column names from the DataFrame to use as labels
     labels = fs.data.columns.values.tolist()
@@ -137,9 +131,7 @@ def fs_plot_som(
     for i in range(fs.som_param.shape[0]):
         for j in range(fs.som_param.shape[1]):
             values = np.append(weights[i, j], weights[i, j][0])
-            cluster_fills = fs_plot_star_chart(
-                ax[i, j], max_weight, angles, values, colors
-            )
+            cluster_fills = fs_plot_star_chart(ax[i, j], angles, values, colors)
 
     # Render metaclusters
     if show_mclusters:
@@ -225,9 +217,10 @@ def fs_plot_mst(
     """
     plt.clf()
 
-    weights = fs.som.get_weights()
+    weights = fs.nodes_avg_markers
     weights = weights.reshape(-1, weights.shape[-1])
-    max_weight = np.max(weights)
+
+    print(weights.shape)
 
     labels = fs.data.columns.values.tolist()
 
@@ -272,7 +265,7 @@ def fs_plot_mst(
         ax.set_zorder(10 + i_node)
         ax.set_autoscale_on(False)
         values = np.concatenate((weights[i_node], weights[i_node][:1]))
-        cluster_fills = fs_plot_star_chart(ax, max_weight, angles, values, colors)
+        cluster_fills = fs_plot_star_chart(ax, angles, values, colors)
 
     if show_mclusters:
         mcluster_fills = {}
@@ -333,7 +326,7 @@ def fs_plot_mst(
         plt.savefig(save)
 
 
-def fs_plot_feature_planes(fs, save=None, show=True):
+def fs_plot_feature_planes(fs, save=None, show=True, cmap="coolwarm"):
     """
     Generates a plot showcasing the feature planes of the Self-Organizing Map (SOM) in
     the FlowSOM model.
@@ -362,7 +355,7 @@ def fs_plot_feature_planes(fs, save=None, show=True):
     """
     plt.clf()
     plt.figure(figsize=(12, 12))
-    weights = fs.som.get_weights()
+    weights = fs.nodes_avg_markers
     grid_size = int(np.ceil(np.sqrt(len(list(fs.data.columns)))))
     for i, f in enumerate(list(fs.data.columns)):
         ax = plt.subplot(grid_size, grid_size, i + 1)
@@ -371,7 +364,7 @@ def fs_plot_feature_planes(fs, save=None, show=True):
         ax.set_yticklabels([])
         ax.axis("off")
         plt.title(f)
-        plt.pcolor(weights[:, :, i].T, cmap="plasma")
+        plt.pcolor(weights[:, :, i].T, cmap=cmap)
     plt.tight_layout()
     if show:
         plt.show()
