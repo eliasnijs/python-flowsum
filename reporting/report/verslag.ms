@@ -80,8 +80,24 @@ tussenresultaten van het trainen bij.
 De hoofd functie van het FlowSOM object is de
 .I fit
 methode. Dit is de methode die een model zal trainen. Dit trainen bestaat uit
-drie delen: trainen van de som, bouwen van de minimum spanning, construeren van
-de metaclustering. Het resultaat van elk van deze delen wordt ook intern opgeslaan
+drie delen.
+Het eerste deel is het trainen van de SOM. Hiervoor maken we gebruik van
+.I "Minisom".
+.[
+minisom
+.]
+Ten tweede bouwen van de minimum spanning. Hiervoor maken we gebruik van
+.I SciPi.
+.[
+scipy
+.]
+Tot slot construeren we de metaclustering. Hiervoor maken we gebruik van
+Agglomerative clustering van
+.I "scikit-learn".
+.[
+scikit
+.]
+Het resultaat van elk van deze delen wordt ook intern opgeslaan
 in het object en kan de gebruiker dus later nog verder gebruiken.
 
 We raden aan het
@@ -94,6 +110,7 @@ model = FlowSOM(
         som_param,
         mst_param,
         hcc_param).fit(data)
+
 .ps +1
 .DE
 We zien hierbij twee zaken: de initialisatie van het object en het oproepen van
@@ -171,12 +188,21 @@ Het programma is gebouwd aan de hand van de volgende technologieen:
 .nr step 1 1
 .IP \n[step]. 3
 .CW ImGUI
+.[
+pyimgui
+.]
 .IP \n+[step].
 .ps -1
 .CW SDL2
+.[
+sdl2
+.]
 .IP \n+[step].
 .ps -1
 .CW OpenGL
+.[
+opengl
+.]
 .LP
 Het bestaat uit initialisatie, programmalus en opkuis. Tijdens de initialisatie
 worden de contexten voor Imgui, SDL, OpenGL en Flowsom opgezet. Tijdens de
@@ -187,109 +213,69 @@ De implementatie voor de FlowSOMTool is terug te vinden onder:
 .nr step 1 1
 .IP \n[step]. 3
 .ps -1
-.CW src/flowsom/flowsomtool.py,
+.CW src/flowsomtool.py,
 .IP \n+[step].
 .ps -1
-.CW src/flowsom/fst_dataclasses.py,
+.CW src/fst_dataclasses.py,
 .IP \n+[step].
 .ps -1
-.CW src/flowsom/fst_utils.py,
+.CW src/fst_utils.py,
 .IP \n+[step].
 .ps -1
-.CW src/flowsom/fs_windows.py
+.CW src/fst_windows.py
 .LP
 Het lanceren van FlowSOMTool, kan met het script in de
 .CW scripts/
 folder genaamd flowsomtool.sh.
+.1C
+.PSPIC -C "./images/gui.eps"
+.2C
 .NH 1
 Resultaten
 .LP
 In deze sectie bespreken we de prestaties van onze implementatie van het FlowSOM
-algoritme.
+python pakket.
 
-We doen eerst een tijdsmeting. We houden hierbij het aantal iteraties op 10 keer
-de grootte van de dataset. We bekomen dan het volgende resultaat:
+We doen eerst een tijdsmeting. We houden hierbij het aantal epochs op 10.
+We bekomen dan het volgende resultaat:
+.PSPIC -C "./images/time.eps"
 
+We bekijken ook het geheugen gebruik:
+.PSPIC -C "./images/mem.eps"
+.LP
+We zien bij beide een lineair verband tussen de grootte van de input en
+tijd/geheugengebruik.
 .NH 1
 Conclusie
+.LP
+In dit werk hebben we het FlowSOM-pakket geimplementeerd in Python en een
+grafische gebruikersinterface (GUI), genaamd FlowSOMTool, ontwikkeld om de
+toegankelijkheid van het algoritme te vergroten. De ontwikkeling van het
+Python-pakket is van bijzonder belang, gezien het groeiende gebruik van Python
+in de computationele biologie, en het feit dat het oorspronkelijke
+FlowSOM-pakket alleen beschikbaar was in R.
 
-.NH 1
-Toekomstig werk
-.LP
-Hoewel de huidige versie van onze FlowSOM-tool al krachtige visualisatie- en
-analysefuncties biedt, zetten we ons in voor een voortdurende evolutie van de
-tool, gericht op het verhogen van de bruikbaarheid en het uitbreiden van de
-functionaliteit. We identificeren een aantal mogelijke verbeteringen die voor
-toekomstige implementatie worden overwogen:
-.NH 2
-Highlighting en Tooltip-functie
-.LP
-Door een functie toe te voegen die knooppunten markeert wanneer een gebruiker
-met de muis over het knooppunt beweegt, wordt de interactie tussen de gebruiker
-en de visualisaties verder versterkt. Dit verbetert niet alleen de leesbaarheid,
-maar zorgt ook voor een uitgebreid begrip van de onderliggende gegevens. Het
-combineren van deze functie met een tooltip kan meer gedetailleerde informatie
-over het geselecteerde knooppunt weergeven, wat de gebruiker toegang geeft tot
-alle individuele dimensies van de gegevens.
-.NH 2
-Filtermogelijkheden
-.LP
-Een andere geplande verbetering is het geven van meer controle aan de gebruikers
-over welke knooppunten worden weergegeven. Dit kan worden bereikt door
-filterregelaars toe te voegen die gebaseerd zijn op verschillende criteria zoals
-clusterlidmaatschap, waardebereik, enz.
-.NH 2
-Kleurenkaart aanpassing
-.LP
-De mogelijkheid voor gebruikers om de kleurenkaart van de gegevens te wijzigen
-kan een waardevolle toevoeging zijn. Deze functionaliteit kan helpen om de
-knooppunten visueel te differentiëren op basis van verschillende dimensies of
-metrieken.
-.NH 2
-3D-visualisatie
-.LP
-Voor bijzonder complexe, hoog-dimensionale gegevens kan de toevoeging van
-3D-visualisatie, inclusief de mogelijkheid om de 3D-weergave te roteren,
-bijzonder waardevol zijn.
-.NH 2
-Details op aanvraag
-.LP
-We plannen om een optie toe te voegen waarbij gebruikers op een knooppunt kunnen
-klikken om een meer gedetailleerd beeld te krijgen in een apart paneel. Dit
-paneel kan alle dimensies en andere details van de gegevens bevatten.
-.NH 2
-Vergelijkingsmodus
-.LP
-Een functie die gebruikers in staat stelt om meerdere knooppunten of datapunten
-te selecteren en een vergelijking van hun gegevens weer te geven, kan bijzonder
-nuttig zijn bij het identificeren van overeenkomsten of verschillen in
-hoog-dimensionale gegevens.
-.NH 2
-Zoekfunctie
-.LP
-Tot slot overwegen we de toevoeging van een zoekfunctie waarmee gebruikers
-specifieke knooppunten of datapunten kunnen zoeken op basis van verschillende
-parameters.
+Het FlowSOM Python-pakket is geimplementeerd als een klasse met een reeks
+functies voor het trainen, voorspellen, visualiseren van de data en het
+genereren van rapporten. Daarnaast is het opgebouwd om een gebruiksvriendelijke
+en gestructureerde interface te bieden, terwijl het de onderliggende complexiteit
+van het algoritme maskeert.
+De FlowSOMTool GUI maakt interactie met het algoritme mogelijk zonder de
+noodzaak van programmeren, wat bijzonder gunstig is voor gebruikers zonder een
+technische achtergrond.
 
-.LP
-Deze voorgenomen verbeteringen weerspiegelen onze inzet om de FlowSOM-tool nog
-gebruiksvriendelijker en krachtiger te maken. We zijn enthousiast over de
-voortzetting van dit project en de potentiële waarde die deze toekomstige
-verbeteringen zullen bieden voor de gebruikersgemeenschap.
+Uit de resultaten blijkt dat onze implementatie schaalbaar is en zich
+efficiënt gedraagt, met een lineair verband tussen de grootte van de
+input en de tijd/geheugengebruik. Dit is van cruciaal belang voor flow
+cytometry data, die vaak uit duizenden tot miljoenen cellen bestaat.
 
-.NH 1
-Conclusies
-.LP
-Onze FlowSOM-tool is een veelzijdig en krachtig hulpmiddel voor het
-visualiseren en analyseren van complexe, hoogdimensionale gegevens. Door
-gebruik te maken van zelforganiserende kaarten en minimum spannende bomen,
-biedt FlowSOM een effectieve methode voor clustering en visualisatie, waardoor
-gebruikers bruikbare inzichten kunnen halen uit hun gegevens.
+We stellen voor om in de toekomst verdere optimalisatie van het pakket en
+uitbreiding van de GUI te overwegen, om een nog robuuster en veelzijdiger
+instrument te creeren voor onderzoekers in flow cytometry. We zouden
+bijvoorbeeld het highlighten van bepaalde clusters kunnen ondersteunen in de
+GUI.
 
-Hoewel de huidige versie van de tool al aanzienlijke waarde biedt, erkennen we
-dat er altijd ruimte is voor verbetering en uitbreiding. De geplande
-verbeteringen die we hebben geïdentificeerd - zoals het toevoegen van functies
-voor markering, tooltip, filtering, aanpassing van kleurenkaarten,
-3D-visualisatie, gedetailleerde weergave op aanvraag, tijdreeksanimatie,
-vergelijkingsmodus en zoeken - beloven de bruikbaarheid en functionaliteit van
-de tool aanzienlijk te verhogen.
+In essentie hebben we met succes een bruikbaar FlowSOM-pakket en GUI ontwikkeld,
+die samen een belangrijke bijdrage leveren aan het overbruggen van de kloof
+tussen geavanceerde data-analyse en gebruikers met uiteenlopende niveaus van
+technische expertise.
