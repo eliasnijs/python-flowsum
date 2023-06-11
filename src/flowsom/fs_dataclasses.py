@@ -25,7 +25,7 @@ class FlowSOM_SOMParameters:
         "cosine". Default is "euclidean".
     """
 
-    n_epochs: int = 10
+    n_epochs: int = 4
     shape: tuple[int, int] = (10, 10)
     sigma: float = 0.67
     alpha: float = 0.05
