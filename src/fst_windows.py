@@ -15,11 +15,9 @@ def win_parameters(window_dim, som_parameters, mst_parameters, hcc_parameters):
     imgui.dummy(1, 10)
     imgui.text("SOM Parameters")
     imgui.dummy(1, 1)
-    imgui.text("n_iterations")
-    _, som_parameters.n_iterations = imgui.input_int(
-        "##n_iterations", som_parameters.n_iterations
-    )
-    som_parameters.n_iterations = max(0, som_parameters.n_iterations)
+    imgui.text("n_epochs")
+    _, som_parameters.n_epochs = imgui.input_int("##n_epochs", som_parameters.n_epochs)
+    som_parameters.n_epochs = max(0, som_parameters.n_epochs)
 
     imgui.text("sigma")
     _, som_parameters.sigma = imgui.slider_float(

@@ -93,7 +93,7 @@ The following parameters were used to train the FlowSOM model:
 
 Parameter | Value
 --- | ---
-Number of Iterations | `{model.som_param.n_iterations}`
+Number of Epochs | `{model.som_param.n_epochs}`
 Shape of SOM Grid | `{model.som_param.shape}`
 Neighbourhood ($\\sigma$) | `{model.som_param.sigma}`
 Learning Rate ($\\alpha$) | `{model.som_param.alpha}`
@@ -174,8 +174,8 @@ Neuron | Nr. of Cells | % of Total Cells | Metacluster | % in Metacluster
 
     # Add cluster numerical data to the report
     nodes, cell_counts = np.unique(winners, return_counts=True)
-    for node in nodes:
-        num_cells = cell_counts[node]
+    for i, node in enumerate(nodes):
+        num_cells = cell_counts[i]
         percent_cells = num_cells / len(model.data) * 100
         metacluster = model.hcc[node]
         percent_in_metacluster = num_cells / metacluster_counts[metacluster] * 100

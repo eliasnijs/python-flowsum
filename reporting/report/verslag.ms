@@ -28,20 +28,25 @@ Introductie
 Flow cytometry is een techniek die in toenemende mate wordt gebruikt in
 biomedisch onderzoek. Deze techniek maakt het mogelijk om de
 fysische en chemische kenmerken van individuele cellen in een stroom
-van vloeistof te meten, wat tot diepgaande inzichten in het functioneren
+van vloeistof te meten, wat tot inzichten in het functioneren
 van cellen kan leiden. Een van de grootste uitdagingen van flow
 cytometry is echter de analyse van de geproduceerde data, die vaak
 uit duizenden tot miljoenen cellen bestaat, elk met meerdere gemeten
 parameters. Het is een hoogdimensionale dataset, en traditionele
 analysetechnieken zijn vaak ontoereikend.
 
-In deze context is het FlowSOM-algoritme ontwikkeld. FlowSOM maakt gebruik
-van Self-Organizing Maps (SOM) en meta clustering om de data op een
+In deze context is het FlowSOM-algoritme
+.[
+flowsom
+.]
+ontwikkeld. FlowSOM maakt gebruik
+van Self-Organizing Maps (SOM) en meta clustering om de data
 te visualiseren en interpretatie mogelijk te maken. Het heeft zich
-bewezen als een krachtig hulpmiddel voor flow cytometry data-analyse.
+bewezen als een hulpmiddel voor flow cytometry data-analyse.
 Het blijft echter een uitdaging voor onderzoekers met een minder technische
-achtergrond in computer wetenschappen om dit algoritme te gebruiken. Daarnaast
-gebeurt computationele biologie steeds vaker in python.
+achtergrond om dit algoritme te gebruiken. Daarnaast
+gebeurt de computationele biologie steeds vaker in python. Het huidige flowsom
+pakket is echter geschreven voor de taal R.
 
 Het doel van dit werk is om zowel een python pakket als grafische
 gebruikersinterface (GUI) voor het FlowSOM-algoritme te implementeren. Op deze
@@ -62,19 +67,6 @@ bijbehorende grafische gebruikersinterface (GUI).
 .NH 2
 FlowSOM Implementatie
 .LP
-De kern van dit onderzoek bestaat uit de implementatie van het
-FlowSOM-algoritme. Deze implementatie is opgebouwd rond een modulaire structuur
-terug te vinden in vier bestanden:
-.I flowsom.FlowSOM,
-.I flowsom.fs_dataclasses,
-.I flowsom.fs_plotting,
-.I flowsom.fs_reporting.
-waarvan
-.I flowsom.FlowSOM
-en de paramterclasses uit
-.I fs_dataclasses
-publiek gedeclareerd worden in het pakket.
-
 De FlowSOM implementatie wordt beschikbaar gesteld in een klasse genaamd FlowSOM, een
 uitbreiding van de
 .I BaseEstimator
@@ -88,8 +80,8 @@ tussenresultaten van het trainen bij.
 De hoofd functie van het FlowSOM object is de
 .I fit
 methode. Dit is de methode die een model zal trainen. Dit trainen bestaat uit
-drie delen: trainen van de som, bouwen van de minimum spanning tree en de
-metaclustering. Het resultaat van elk van deze delen wordt ook intern opgeslaan
+drie delen: trainen van de som, bouwen van de minimum spanning, construeren van
+de metaclustering. Het resultaat van elk van deze delen wordt ook intern opgeslaan
 in het object en kan de gebruiker dus later nog verder gebruiken.
 
 We raden aan het
@@ -97,6 +89,7 @@ Flowsom object op volgende manier te gebruiken:
 .BD
 .CW
 .ps -1
+
 model = FlowSOM(
         som_param,
         mst_param,
@@ -107,51 +100,115 @@ We zien hierbij twee zaken: de initialisatie van het object en het oproepen van
 de
 .I fit
 methode.
-De argumenten van de initialisatie zijn dataclasses die de parameters van elk
-deel van het algoritme bevatten. Er werd gekozen om deze in een dataclass te
-steken om de paramters overzichtelijk te structureren. De parameters van de fit
-functie zijn een pandas dataframe die de cytometrie data bevat en een optie om
+De argumenten van de initialisatie zijn dataklassen die de parameters van elk
+deel van het algoritme bevatten. Er werd gekozen om deze in dataklassen te
+steken om de parameters overzichtelijk te structureren. De parameters van de fit
+functie zijn: een pandas dataframe die de cytometrie data bevat, een optie om
 logging aan te zetten met
 .CW verbose=True .
 
 De functionaliteit van de FlowSOM-klasse strekt zich verder uit tot
 data- en visualisatiefuncties waaronder functies om de minimum spanning tree met
 of zonder metalcusters te plotten, een functie om het som grid met of zonder
-metaclusters te plotten, ... Meer informatie omtrent deze is terug te vinden in de documentatie.
+metaclusters te plotten, ... Voor een globaal overzicht van de functies en hun
+mogelijke paramters verwijzen we naar de meegeleverde documentatie.
 
 Het FlowSOM-pakket omvat ook een uitgebreide rapport functie, deze is
 in staat is een verslag van de analyse te genereren in
 markdown syntax. Dit rapport bevat een samenvatting van de
-FlowSOM-analyseresultaten waaronder de model parameters, visualisaties en
-numerisch resultaten voor elke node en elke metacluster. Er werd gekozen voor
-markdown zodat de gebruiker kan kiezen in welke stijl hij het verslag wilt zien.
+FlowSOM-analyse waaronder de model parameters, visualisaties en
+numerisch resultaten voor elke node en elke metacluster. Er werd gekozen dit in
+markdown te voorzien zodat de gebruiker kan kiezen in welke stijl hij het
+verslag wilt renderen.
+
+De implementatie voor het FlowSOM pakket is terug te vinden onder:
+.nr step 1 1
+.IP \n[step]. 3
+.ps -1
+.CW src/flowsom/flowsom.py,
+.IP \n+[step].
+.ps -1
+.CW src/flowsom/fs_dataclasses.py,
+.IP \n+[step].
+.ps -1
+.CW src/flowsom/fs_plotting.py,
+.IP \n+[step].
+.ps -1
+.CW src/flowsom/fs_reporting.py
+
+.LP
+Hierbij zijn tal van functies geschreven in de
+.CW fs_...
+bestanden. De functies in deze geschreven, zijn ofwel hulpfuncties, ofwel functies
+die in het flowsom object, dat zich in
+.CW flowsom.py
+bevindt, omwikkeld worden. De zaken die in het pakket publiek gesteld worden
+zijn het FlowSOM object uit
+.CW flowsom.py
+en de parameter klassen uit
+.CW "fs_dataclasses.py".
 .NH 2
 FlowSOMTool: De GUI
 .LP
 De tweede component van onze methodologie betreft de ontwikkeling van
-FlowSOMTool, een GUI ontworpen aan de hand van python bindings voor de
-ImGui-bibliotheek. Deze interface streeft
+FlowSOMTool, een GUI voor FlowSOM.
+De GUI streeft
 ernaar de interactie met het FlowSOM-algoritme zo eenvoudig mogelijk te maken
 zodat mensen met minder technische achtergrond ook het algoritme kunnen
-gebruiken.
+gebruiken. Deze GUI is een prototype en is bedoeld als platform waar meer
+geavanceerdere interactie mogelijkheden kunnen op verder gebouwd worden.
 
-FlowSOMTool biedt gebruikers een breed scala aan mogelijkheden, te beginnen met
-de selectie van de FlowSOM-bestanden die geanalyseerd moeten worden. Vervolgens
+FlowSOMTool biedt gebruikers een aantal aan mogelijkheden. Ten eerste
+geeft het de gebruiker de optie om FlowSOM-bestanden te selecteren op
+interactieve wijze. Daarnaast
 stelt het de gebruikers in staat om de parameters voor het algoritme aan te
 passen, het algoritme uit te voeren, en de resultaten te exporteren voor verdere
-analyse. Een cruciaal onderdeel van de GUI is het vermogen om de gegenereerde
+analyse. Een belangrijk onderdeel van de GUI is het vermogen om de gegenereerde
 plots te visualiseren. Hierdoor krijgen gebruikers de mogelijkheid om de
-FlowSOM-analyse op een visueel aantrekkelijke manier te inspecteren. Deze GUI is
-een prototype en is bedoeld als platform waar meer geavanceerdere interactie
-mogelijkheden kunnen op verder gebouwd worden.
+FlowSOM-analyse op een visueel aantrekkelijke manier te inspecteren.
 
-Deze methodologie, met zijn twee componenten, zorgt voor een
-veelzijdige mogelijkheden voor de analyse van flowcytometriegegevens, terwijl het
-tegelijkertijd de flexibiliteit en aanpassingsvermogen behoudt die nodig zijn
-voor individueel onderzoek.
+Het programma is gebouwd aan de hand van de volgende technologieen:
+.nr step 1 1
+.IP \n[step]. 3
+.CW ImGUI
+.IP \n+[step].
+.ps -1
+.CW SDL2
+.IP \n+[step].
+.ps -1
+.CW OpenGL
+.LP
+Het bestaat uit initialisatie, programmalus en opkuis. Tijdens de initialisatie
+worden de contexten voor Imgui, SDL, OpenGL en Flowsom opgezet. Tijdens de
+programma lus worden telkens de contexten geupdate, de imgui windows opgezet en
+tot slot alles weergegeven.
 
+De implementatie voor de FlowSOMTool is terug te vinden onder:
+.nr step 1 1
+.IP \n[step]. 3
+.ps -1
+.CW src/flowsom/flowsomtool.py,
+.IP \n+[step].
+.ps -1
+.CW src/flowsom/fst_dataclasses.py,
+.IP \n+[step].
+.ps -1
+.CW src/flowsom/fst_utils.py,
+.IP \n+[step].
+.ps -1
+.CW src/flowsom/fs_windows.py
+.LP
+Het lanceren van FlowSOMTool, kan met het script in de
+.CW scripts/
+folder genaamd flowsomtool.sh.
 .NH 1
 Resultaten
+.LP
+In deze sectie bespreken we de prestaties van onze implementatie van het FlowSOM
+algoritme.
+
+We doen eerst een tijdsmeting. We houden hierbij het aantal iteraties op 10 keer
+de grootte van de dataset. We bekomen dan het volgende resultaat:
 
 .NH 1
 Conclusie
@@ -236,8 +293,3 @@ voor markering, tooltip, filtering, aanpassing van kleurenkaarten,
 3D-visualisatie, gedetailleerde weergave op aanvraag, tijdreeksanimatie,
 vergelijkingsmodus en zoeken - beloven de bruikbaarheid en functionaliteit van
 de tool aanzienlijk te verhogen.
-
-
-
-.NH 1
-Referenties
