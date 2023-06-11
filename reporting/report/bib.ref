@@ -16,3 +16,47 @@
 %R https://doi.org/10.1002/cyto.a.22625
 %U https://onlinelibrary.wiley.com/doi/abs/10.1002/cyto.a.22625
 %X Abstract The number of markers measured in both flow and mass cytometry keeps increasing steadily. Although this provides a wealth of information, it becomes infeasible to analyze these datasets manually. When using 2D scatter plots, the number of possible plots increases exponentially with the number of markers and therefore, relevant information that is present in the data might be missed. In this article, we introduce a new visualization technique, called FlowSOM, which analyzes Flow or mass cytometry data using a Self-Organizing Map. Using a two-level clustering and star charts, our algorithm helps to obtain a clear overview of how all markers are behaving on all cells, and to detect subsets that might be missed otherwise. R code is available at https://github.com/SofieVG/FlowSOM and will be made available at Bioconductor. © 2015 International Society for Advancement of Cytometry
+
+%0 Computer Program
+%T PyImGUI contributors
+%D 2023
+%O Python binding for the Dear ImGui C++ GUI library
+%U https://pypi.org/project/pyimgui-wheels/
+
+%0 Computer Program
+%A PyOpenGL contributors
+%T PyOpenGL
+%D 2023
+%O Python bindings for OpenGL 3D graphics library
+%U https://pypi.org/project/PyOpenGL/
+
+%0 Computer Program
+%A PySDL2 contributors
+%T PySDL2
+%D 2023
+%O Python bindings for SDL2 C library
+%U https://pyopengl.sourceforge.net/
+
+%0 Computer Program
+%A Giuseppe Vettigli
+%T MiniSom: minimalistic and NumPy-based implementation of the Self Organizing Map
+%D 2023
+%U https://pypi.org/project/MiniSom/
+
+%0 Computer Program
+%A scikit-learn developers
+%T scikit-learn
+%D 2023
+%O Machine learning library in Python including implementation of Agglomerative Clustering
+%U https://pypi.org/project/scikit-learn/
+
+%0 Computer Program
+%A SciPy developers
+%T SciPy
+%D 2023
+%O Python library for scientific computing including implementation of minimum spanning tree algorithms
+%U https://pypi.org/project/scipy/
+
+
+
+
