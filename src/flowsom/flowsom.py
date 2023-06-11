@@ -122,7 +122,9 @@ class FlowSOM(BaseEstimator, ClusterMixin):
             random_seed=0,
         )
         som.train_batch(
-            data.values, num_iteration=self.som_param.n_iterations, verbose=verbose
+            data.values,
+            num_iteration=self.som_param.n_epochs * self.data.shape[0],
+            verbose=verbose,
         )
         self.som = som
 
